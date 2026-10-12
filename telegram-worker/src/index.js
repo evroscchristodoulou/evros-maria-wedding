@@ -1,6 +1,33 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === '/photos/upload') {
+      const headers = {'Access-Control-Allow-Origin':'https://evroscchristodoulou.github.io','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-Wedding-Code','Vary':'Origin','Cache-Control':'no-store'};
+      if (request.method === 'OPTIONS') return new Response(null,{status:204,headers});
+      if (request.method !== 'POST') return new Response('Method not allowed',{status:405,headers});
+      if (request.headers.get('Origin') !== 'https://evroscchristodoulou.github.io') return new Response('Forbidden',{status:403,headers});
+      if (!env.PHOTOS || !env.PHOTO_UPLOAD_CODE) return Response.json({error:'Photo uploads are not configured yet'},{status:503,headers});
+      const supplied=request.headers.get('X-Wedding-Code')||'';
+      if (!supplied || supplied !== env.PHOTO_UPLOAD_CODE) return Response.json({error:'Incorrect guest upload code'},{status:403,headers});
+      const contentType=(request.headers.get('Content-Type')||'').split(';')[0].toLowerCase();
+      const allowed=['image/jpeg','image/png','image/webp','image/heic','image/heif'];
+      if (!allowed.includes(contentType)) return Response.json({error:'Unsupported photo format'},{status:415,headers});
+      const max=10*1024*1024;
+      const declared=Number(request.headers.get('Content-Length')||0);
+      if (declared>max) return Response.json({error:'Photo exceeds 10 MB'},{status:413,headers});
+      const bytes=await request.arrayBuffer();
+      if (!bytes.byteLength || bytes.byteLength>max) return Response.json({error:'Photo must be between 1 byte and 10 MB'},{status:413,headers});
+      const b=new Uint8Array(bytes);let valid=false;
+      if(contentType==='image/jpeg') valid=b[0]===255&&b[1]===216&&b[2]===255;
+      if(contentType==='image/png') valid=b[0]===137&&b[1]===80&&b[2]===78&&b[3]===71;
+      if(contentType==='image/webp') valid=String.fromCharCode(...b.slice(0,4))==='RIFF'&&String.fromCharCode(...b.slice(8,12))==='WEBP';
+      if(contentType==='image/heic'||contentType==='image/heif') valid=String.fromCharCode(...b.slice(4,8))==='ftyp';
+      if(!valid) return Response.json({error:'Invalid image file'},{status:415,headers});
+      const ext={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/heic':'heic','image/heif':'heif'}[contentType];
+      const key='guest-uploads/'+new Date().toISOString().slice(0,10)+'/'+crypto.randomUUID()+'.'+ext;
+      await env.PHOTOS.put(key,bytes,{httpMetadata:{contentType},customMetadata:{source:'wedding-guest-upload'}});
+      return Response.json({ok:true},{status:201,headers});
+    }
     if (url.pathname === '/health') return Response.json({ok:true, service:'wedding-telegram'});
     if (url.pathname === '/telegram/webhook' && request.method === 'POST') {
       if (!env.TELEGRAM_WEBHOOK_SECRET || request.headers.get('X-Telegram-Bot-Api-Secret-Token') !== env.TELEGRAM_WEBHOOK_SECRET) return new Response('Forbidden',{status:403});
