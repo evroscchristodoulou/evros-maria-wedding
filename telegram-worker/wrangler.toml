@@ -1,4 +1,4 @@
-name = "evros-maria-telegram"
+name = "evros-maria-wedding"
 main = "src/index.js"
 compatibility_date = "2026-09-01"
 
@@ -6,3 +6,7 @@ compatibility_date = "2026-09-01"
 [[kv_namespaces]]
 binding = "SUBSCRIBERS"
 id = "5a57cb0a45bc42fb8de395f8441ec2e9"
+
+[[r2_buckets]]
+binding = "PHOTOS"
+bucket_name = "evros-maria-wedding-photos"
