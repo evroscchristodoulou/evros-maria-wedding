@@ -22,6 +22,18 @@ export default {
         await env.SUBSCRIBERS.put(key,JSON.stringify({id:key,type,name,message,artist: type==='song'?artist:'',approved:false,createdAt:new Date().toISOString()}));
         return json({ok:true,moderation:true},201);
       }
+      if(url.pathname==='/wedding/songs' && request.method==='GET'){
+        const entries=[];let cursor;
+        do {
+          const page=await env.SUBSCRIBERS.list({prefix:'wedding:song:',cursor,limit:100});
+          for(const key of page.keys){
+            const item=await env.SUBSCRIBERS.get(key.name,'json');
+            if(item && item.type==='song')entries.push({name:item.name,message:item.message,artist:item.artist,createdAt:item.createdAt});
+          }
+          cursor=page.list_complete?undefined:page.cursor;
+        } while(cursor && entries.length<500);
+        return json({songs:entries.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,500)});
+      }
       if(url.pathname==='/wedding/wishes' && request.method==='GET'){
         const out=[];let cursor;
         do{const page=await env.SUBSCRIBERS.list({prefix:'wedding:wish:',cursor,limit:100});for(const k of page.keys){const item=await env.SUBSCRIBERS.get(k.name,'json');if(item?.approved)out.push({name:item.name,message:item.message,createdAt:item.createdAt})}cursor=page.list_complete?undefined:page.cursor}while(cursor&&out.length<200);
