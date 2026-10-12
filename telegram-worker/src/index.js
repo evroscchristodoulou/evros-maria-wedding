@@ -27,7 +27,7 @@ export default {
         do{const page=await env.SUBSCRIBERS.list({prefix:'wedding:wish:',cursor,limit:100});for(const k of page.keys){const item=await env.SUBSCRIBERS.get(k.name,'json');if(item?.approved)out.push({name:item.name,message:item.message,createdAt:item.createdAt})}cursor=page.list_complete?undefined:page.cursor}while(cursor&&out.length<200);
         return json({wishes:out.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,100)});
       }
-      if(!admin)return json({error:'Unauthorized'},401);
+      if(!admin)return json({error:'Unauthorized',reason:!env.ADMIN_SECRET?'admin_secret_missing':'credentials_mismatch'},401);
       if(url.pathname==='/wedding/admin/list' && request.method==='GET'){
         const type=url.searchParams.get('type');if(!['song','wish'].includes(type))return json({error:'Invalid type'},400);
         let cursor;const entries=[];do{const page=await env.SUBSCRIBERS.list({prefix:'wedding:'+type+':',cursor,limit:100});for(const k of page.keys){const item=await env.SUBSCRIBERS.get(k.name,'json');if(item)entries.push(item)}cursor=page.list_complete?undefined:page.cursor}while(cursor&&entries.length<500);
