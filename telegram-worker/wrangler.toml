@@ -5,4 +5,4 @@ compatibility_date = "2026-09-01"
 # After creating a Cloudflare KV namespace, replace the placeholder ID.
 [[kv_namespaces]]
 binding = "SUBSCRIBERS"
-id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+id = "5a57cb0a45bc42fb8de395f8441ec2e9"
