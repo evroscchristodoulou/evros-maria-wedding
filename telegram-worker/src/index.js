@@ -1,6 +1,54 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    const origin='https://evroscchristodoulou.github.io';
+    const cors={'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Methods':'GET,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Content-Type,Authorization','Cache-Control':'no-store','Vary':'Origin'};
+    if(url.pathname.startsWith('/wedding/') || url.pathname==='/photos/delete'){
+      if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
+      const json=(body,status=200)=>Response.json(body,{status,headers:cors});
+      const admin=!!env.ADMIN_SECRET && request.headers.get('Authorization')==='Bearer '+env.ADMIN_SECRET;
+      if(!env.SUBSCRIBERS)return json({error:'Storage unavailable'},503);
+      if(request.method!=='GET' && request.headers.get('Origin')!==origin)return json({error:'Forbidden'},403);
+      if(url.pathname==='/wedding/submit' && request.method==='POST'){
+        const length=Number(request.headers.get('Content-Length')||0);if(length>4096)return json({error:'Too long'},413);
+        let data;try{data=await request.json()}catch{return json({error:'Invalid JSON'},400)}
+        const type=data.type; if(!['song','wish'].includes(type))return json({error:'Invalid type'},400);
+        const name=String(data.name||'').trim().slice(0,80);
+        const message=String(data.message||'').trim().slice(0,500);
+        const artist=String(data.artist||'').trim().slice(0,100);
+        if(!name||!message|| (type==='song'&&!artist))return json({error:'Please complete all fields'},400);
+        const key='wedding:'+type+':'+new Date().toISOString()+':'+crypto.randomUUID();
+        await env.SUBSCRIBERS.put(key,JSON.stringify({id:key,type,name,message,artist: type==='song'?artist:'',approved:false,createdAt:new Date().toISOString()}));
+        return json({ok:true,moderation:true},201);
+      }
+      if(url.pathname==='/wedding/wishes' && request.method==='GET'){
+        const out=[];let cursor;
+        do{const page=await env.SUBSCRIBERS.list({prefix:'wedding:wish:',cursor,limit:100});for(const k of page.keys){const item=await env.SUBSCRIBERS.get(k.name,'json');if(item?.approved)out.push({name:item.name,message:item.message,createdAt:item.createdAt})}cursor=page.list_complete?undefined:page.cursor}while(cursor&&out.length<200);
+        return json({wishes:out.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,100)});
+      }
+      if(!admin)return json({error:'Unauthorized'},401);
+      if(url.pathname==='/wedding/admin/list' && request.method==='GET'){
+        const type=url.searchParams.get('type');if(!['song','wish'].includes(type))return json({error:'Invalid type'},400);
+        let cursor;const entries=[];do{const page=await env.SUBSCRIBERS.list({prefix:'wedding:'+type+':',cursor,limit:100});for(const k of page.keys){const item=await env.SUBSCRIBERS.get(k.name,'json');if(item)entries.push(item)}cursor=page.list_complete?undefined:page.cursor}while(cursor&&entries.length<500);
+        return json({entries:entries.sort((a,b)=>b.createdAt.localeCompare(a.createdAt))});
+      }
+      if(url.pathname==='/wedding/admin/update' && request.method==='POST'){
+        const data=await request.json().catch(()=>null);
+        if(!data || typeof data.id!=='string'||!/^wedding:(song|wish):/.test(data.id))return json({error:'Invalid ID'},400);
+        const old=await env.SUBSCRIBERS.get(data.id,'json');if(!old)return json({error:'Not found'},404);
+        if(data.action==='delete')await env.SUBSCRIBERS.delete(data.id);
+        else if(data.action==='approve'||data.action==='hide'){old.approved=data.action==='approve';await env.SUBSCRIBERS.put(data.id,JSON.stringify(old))}
+        else return json({error:'Invalid action'},400);
+        return json({ok:true});
+      }
+      if(url.pathname==='/photos/delete' && request.method==='POST'){
+        const data=await request.json().catch(()=>null);
+        if(!data||typeof data.id!=='string'||!/^guest-uploads\/[0-9]{4}-[0-9]{2}-[0-9]{2}\/[a-f0-9-]+\.(jpg|png|webp|heic|heif)$/i.test(data.id))return json({error:'Invalid photo'},400);
+        await env.PHOTOS.delete(data.id);return json({ok:true});
+      }
+      return json({error:'Not found'},404);
+    }
     if (url.pathname === '/photos/list' && request.method === 'GET') {
       const headers={'Access-Control-Allow-Origin':'https://evroscchristodoulou.github.io','Cache-Control':'no-store'};
       if (!env.PHOTOS) return Response.json({error:'Gallery unavailable'},{status:503,headers});
