@@ -1,6 +1,24 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === '/photos/list' && request.method === 'GET') {
+      const headers={'Access-Control-Allow-Origin':'https://evroscchristodoulou.github.io','Cache-Control':'no-store'};
+      if (!env.PHOTOS) return Response.json({error:'Gallery unavailable'},{status:503,headers});
+      const cursor=url.searchParams.get('cursor')||undefined;
+      try {
+        const page=await env.PHOTOS.list({prefix:'guest-uploads/',limit:60,cursor});
+        const photos=page.objects.filter(obj=>/\.(jpg|png|webp|heic|heif)$/i.test(obj.key)).map(obj=>({id:obj.key,date:obj.uploaded?.toISOString()||null}));
+        return Response.json({photos,cursor:page.truncated?page.cursor:null},{headers});
+      } catch(e) {return Response.json({error:'Could not load gallery'},{status:500,headers});}
+    }
+    if (url.pathname === '/photos/view' && request.method === 'GET') {
+      if (!env.PHOTOS) return new Response('Unavailable',{status:503});
+      const key=url.searchParams.get('id')||'';
+      if (!/^guest-uploads\/[0-9]{4}-[0-9]{2}-[0-9]{2}\/[a-f0-9-]+\.(jpg|png|webp|heic|heif)$/i.test(key)) return new Response('Invalid photo',{status:400});
+      const obj=await env.PHOTOS.get(key);
+      if (!obj) return new Response('Not found',{status:404});
+      return new Response(obj.body,{headers:{'Content-Type':obj.httpMetadata?.contentType||'application/octet-stream','Cache-Control':'public,max-age=3600','X-Content-Type-Options':'nosniff','Access-Control-Allow-Origin':'https://evroscchristodoulou.github.io'}});
+    }
     if (url.pathname === '/photos/upload') {
       const headers = {'Access-Control-Allow-Origin':'https://evroscchristodoulou.github.io','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type','Vary':'Origin','Cache-Control':'no-store'};
       if (request.method === 'OPTIONS') return new Response(null,{status:204,headers});
