@@ -1,0 +1,8 @@
+name = "evros-maria-telegram"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+# After creating a Cloudflare KV namespace, replace the placeholder ID.
+[[kv_namespaces]]
+binding = "SUBSCRIBERS"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
