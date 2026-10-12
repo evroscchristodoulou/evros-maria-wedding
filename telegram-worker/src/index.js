@@ -2,13 +2,11 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === '/photos/upload') {
-      const headers = {'Access-Control-Allow-Origin':'https://evroscchristodoulou.github.io','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-Wedding-Code','Vary':'Origin','Cache-Control':'no-store'};
+      const headers = {'Access-Control-Allow-Origin':'https://evroscchristodoulou.github.io','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type','Vary':'Origin','Cache-Control':'no-store'};
       if (request.method === 'OPTIONS') return new Response(null,{status:204,headers});
       if (request.method !== 'POST') return new Response('Method not allowed',{status:405,headers});
       if (request.headers.get('Origin') !== 'https://evroscchristodoulou.github.io') return new Response('Forbidden',{status:403,headers});
-      if (!env.PHOTOS || !env.PHOTO_UPLOAD_CODE) return Response.json({error:'Photo uploads are not configured yet'},{status:503,headers});
-      const supplied=request.headers.get('X-Wedding-Code')||'';
-      if (!supplied || supplied !== env.PHOTO_UPLOAD_CODE) return Response.json({error:'Incorrect guest upload code'},{status:403,headers});
+      if (!env.PHOTOS) return Response.json({error:'Photo uploads are not configured yet'},{status:503,headers});
       const contentType=(request.headers.get('Content-Type')||'').split(';')[0].toLowerCase();
       const allowed=['image/jpeg','image/png','image/webp','image/heic','image/heif'];
       if (!allowed.includes(contentType)) return Response.json({error:'Unsupported photo format'},{status:415,headers});
