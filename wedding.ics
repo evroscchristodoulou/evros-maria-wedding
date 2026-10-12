@@ -1,0 +1,13 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Evros and Maria//Wedding//EN
+BEGIN:VEVENT
+UID:evros-maria-wedding-20280610
+DTSTAMP:20261012T000000Z
+DTSTART;VALUE=DATE:20280610
+DTEND;VALUE=DATE:20280611
+SUMMARY:Evros & Maria Wedding
+LOCATION:Barnyard Venue\, Skarinou\, Cyprus
+DESCRIPTION:Save the date! Event time to be announced.
+END:VEVENT
+END:VCALENDAR
