@@ -10,6 +10,38 @@ export default {
       const admin=!!env.ADMIN_SECRET && request.headers.get('Authorization')==='Bearer '+env.ADMIN_SECRET;
       if(!env.SUBSCRIBERS)return json({error:'Storage unavailable'},503);
       if(request.method!=='GET' && request.headers.get('Origin')!==origin)return json({error:'Forbidden'},403);
+      // Guest web push subscription preparation. VAPID_PUBLIC_KEY must be configured before opt-in.
+      if(url.pathname==='/wedding/push/config'&&request.method==='GET'){
+        return json({enabled:!!env.VAPID_PUBLIC_KEY,publicKey:env.VAPID_PUBLIC_KEY||null});
+      }
+      if(url.pathname==='/wedding/push/subscribe'&&request.method==='POST'){
+        if(!env.VAPID_PUBLIC_KEY)return json({error:'Push notifications are not configured yet'},503);
+        const raw=await request.text();if(raw.length>4096)return json({error:'Subscription too large'},413);
+        let sub;try{sub=JSON.parse(raw)}catch{return json({error:'Invalid subscription'},400)}
+        if(typeof sub.endpoint!=='string'||sub.endpoint.length>1600||!sub.endpoint.startsWith('https://')||!sub.keys||typeof sub.keys.p256dh!=='string'||typeof sub.keys.auth!=='string'||sub.keys.p256dh.length>300||sub.keys.auth.length>200)return json({error:'Invalid subscription'},400);
+        const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(sub.endpoint));const id=Array.from(new Uint8Array(hash)).map(x=>x.toString(16).padStart(2,'0')).join('');
+        await env.SUBSCRIBERS.put('wedding:push:'+id,JSON.stringify({endpoint:sub.endpoint,keys:{p256dh:sub.keys.p256dh,auth:sub.keys.auth},createdAt:new Date().toISOString()}));
+        return json({ok:true},201);
+      }
+      if(url.pathname==='/wedding/push/unsubscribe'&&request.method==='POST'){
+        const raw=await request.text();if(raw.length>2048)return json({error:'Too long'},413);
+        let d;try{d=JSON.parse(raw)}catch{return json({error:'Invalid request'},400)}
+        if(typeof d.endpoint!=='string'||!d.endpoint.startsWith('https://')||d.endpoint.length>1600)return json({error:'Invalid endpoint'},400);
+        const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(d.endpoint));const id=Array.from(new Uint8Array(hash)).map(x=>x.toString(16).padStart(2,'0')).join('');
+        await env.SUBSCRIBERS.delete('wedding:push:'+id);return json({ok:true});
+      }
+      if(url.pathname==='/wedding/push/subscribers'&&request.method==='GET'){
+        if(!admin)return json({error:'Unauthorized'},401);
+        let cursor,count=0;do{const page=await env.SUBSCRIBERS.list({prefix:'wedding:push:',cursor,limit:1000});count+=page.keys.length;cursor=page.list_complete?undefined:page.cursor}while(cursor);return json({count});
+      }
+      // Financial data and checklist must not be exposed via unauthenticated public APIs.
+      if(url.pathname==='/wedding/private-data'){
+        if(!admin)return json({error:'Administrator authentication required'},401);
+        const type=url.searchParams.get('type');if(!['budget','checklist'].includes(type))return json({error:'Invalid type'},400);
+        const key='wedding:private:'+type;
+        if(request.method==='GET')return json({data:await env.SUBSCRIBERS.get(key,'json')||[]});
+        if(request.method==='POST'){const raw=await request.text();if(raw.length>150000)return json({error:'Too large'},413);let data;try{data=JSON.parse(raw)}catch{return json({error:'Invalid JSON'},400)}if(!Array.isArray(data)||data.length>1000)return json({error:'Invalid data'},400);await env.SUBSCRIBERS.put(key,JSON.stringify(data));return json({ok:true})}
+      }
       if(url.pathname==='/wedding/submit' && request.method==='POST'){
         const length=Number(request.headers.get('Content-Length')||0);if(length>4096)return json({error:'Too long'},413);
         let data;try{data=await request.json()}catch{return json({error:'Invalid JSON'},400)}
