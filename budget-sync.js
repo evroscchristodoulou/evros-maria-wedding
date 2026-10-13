@@ -150,6 +150,7 @@ async function refresh(manual){
  try{
    const cloud=await request('GET');
    if(!Array.isArray(cloud.data))throw Error('Invalid shared budget');
+   if(queue.length||networkBusy)return; // A local edit arrived while GET was pending.
    if(!isLinked()&&suppliers.length&&serial()!==canonical(cloud.data)){queueLegacy();return}
    if(queueUnsentLocalChanges())return;
    applyCloud(cloud.data);
