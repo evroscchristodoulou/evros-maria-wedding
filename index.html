@@ -8,6 +8,9 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./monogram.png" type="image/png">
 <link rel="apple-touch-icon" href="./monogram.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="E & M Wedding">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
@@ -15,7 +18,7 @@
 :root{--ink:#262420;--muted:#79756e;--paper:#faf9f7;--rule:#dfdcd6}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:300 14px/1.7 Inter,Arial,sans-serif}
 button,a{font:inherit}a{color:inherit}header{max-width:1100px;margin:auto;padding:22px 30px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--rule)}
-.wordmark{font:400 23px 'Cormorant Garamond',Georgia,serif;letter-spacing:.08em;text-decoration:none}.top-actions{display:flex;align-items:center;gap:9px}.icon-action{width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--rule);border-radius:50%;background:transparent;color:var(--ink);cursor:pointer;text-decoration:none}.icon-action svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.icon-action:hover{background:#eae7e1}.install-guide{max-width:600px;margin:0 auto 25px;padding:20px 24px;border:1px solid var(--rule);text-align:left}.install-guide[hidden]{display:none}.install-guide h2{font-size:30px;margin:0 0 8px}.install-guide p{font-size:13px;line-height:1.9;margin:0;color:#5e5a54}.language{border:1px solid var(--rule);border-radius:40px;padding:7px 15px;background:transparent;color:var(--ink);font-size:11px;letter-spacing:.1em;cursor:pointer}
+.wordmark{font:400 23px 'Cormorant Garamond',Georgia,serif;letter-spacing:.08em;text-decoration:none}.top-actions{display:flex;align-items:center;gap:9px}.icon-action{width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--rule);border-radius:50%;background:transparent;color:var(--ink);cursor:pointer;text-decoration:none}.icon-action svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.icon-action:hover{background:#eae7e1}.install-guide{max-width:600px;margin:0 auto 25px;padding:20px 24px;border:1px solid var(--rule);text-align:left}.install-guide[hidden]{display:none}.install-guide h2{font-size:30px;margin:0 0 8px}.install-guide p{font-size:13px;line-height:1.9;margin:0;color:#5e5a54}.install-guide{position:relative;background:#fffdfa;border-radius:12px;box-shadow:0 12px 36px rgba(38,36,32,.07);margin-top:20px}.install-guide ol{padding-left:23px;color:#514c45;font-size:13px;line-height:2;margin:12px 0}.install-guide li{padding-left:4px}.install-guide .install-actions{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}.install-guide .install-actions button{border:1px solid #c7baaa;background:#f7f1e9;color:#292620;border-radius:7px;padding:10px 14px;cursor:pointer;font-size:12px}.install-guide #install-close{position:absolute;top:9px;right:12px;border:0;background:transparent;color:#5e574f;font-size:22px;cursor:pointer}.install-guide #install-device{font-weight:500;margin-bottom:5px;color:#292620}.install-guide .install-note{font-size:11px;color:#82766a;margin-top:12px}.install-guide[hidden]{display:none}.language{border:1px solid var(--rule);border-radius:40px;padding:7px 15px;background:transparent;color:var(--ink);font-size:11px;letter-spacing:.1em;cursor:pointer}
 main{max-width:1100px;margin:auto}.hero{text-align:center;padding:64px 24px 55px}.monogram{width:min(410px,83vw);max-height:310px;object-fit:contain;display:block;margin:0 auto 30px}.monogram-fallback{font:300 100px 'Cormorant Garamond',serif;display:none;line-height:1.3}.eyebrow{text-transform:uppercase;letter-spacing:.34em;font-size:10px;font-weight:400;color:var(--muted)}h1,h2{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300}h1{font-size:clamp(55px,9vw,108px);letter-spacing:.035em;line-height:1.1;margin:18px 0 17px}.date{font:400 17px 'Cormorant Garamond',serif;letter-spacing:.32em}.venue{font-size:12px;letter-spacing:.25em;text-transform:uppercase;margin:20px 0 4px}.location{color:var(--muted);font-size:12px;letter-spacing:.12em}.dj-credit{margin-top:12px;font-size:12px;letter-spacing:.09em;color:var(--muted)}.dj-credit a{display:inline-flex;align-items:center;gap:5px;color:var(--ink);text-decoration:none;border-bottom:1px solid #bdb8b0;padding-bottom:2px}.dj-credit a:hover{border-color:var(--ink)}.line{width:74px;border:0;border-top:1px solid #aaa49b;margin:34px auto}
 .countdown{display:flex;justify-content:center;gap:clamp(20px,6vw,72px);padding:29px 12px 33px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}.time{text-align:center;min-width:55px}.number{font:300 clamp(36px,6vw,60px)/1 'Cormorant Garamond',Georgia,serif}.time-label{display:block;margin-top:10px;text-transform:uppercase;font-size:9px;letter-spacing:.2em;color:var(--muted)}
 .album{text-align:center;padding:65px 20px 80px;border-top:1px solid var(--rule)}.album h2{font-size:clamp(38px,6vw,62px);margin:10px 0 12px}.album-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:12px;max-width:850px;margin:30px auto}.album-grid a{display:block;aspect-ratio:1;overflow:hidden;background:#eae7e1}.album-grid img{width:100%;height:100%;object-fit:cover;transition:transform .2s}.album-grid a:hover img{transform:scale(1.035)}.album-note{font-size:12px;color:var(--muted)}.photos{text-align:center;padding:65px 20px 85px;border-top:1px solid var(--rule)}.photos h2{font-size:clamp(38px,6vw,62px);line-height:1.12;margin:14px 0 18px}.photos p{font-size:13px;color:#5e5a54;max-width:490px;margin:0 auto 22px;line-height:1.9}.upload-area{max-width:480px;margin:28px auto 0;border:1px dashed #bdb7ad;padding:32px 22px}.upload-area input{display:none}.photo-note{margin-top:15px!important;font-size:11px!important;color:var(--muted)!important}.details{text-align:center;padding:74px 20px 85px}.details h2{font-size:clamp(38px,6vw,62px);line-height:1.12;margin:14px 0 22px}.details p{max-width:500px;margin:0 auto;color:#5e5a54;line-height:1.95;font-size:13px}.actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:34px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 26px;border:1px solid var(--ink);font-size:10px;letter-spacing:.18em;text-decoration:none;text-transform:uppercase;transition:background .2s,color .2s}.btn.primary{background:var(--ink);color:var(--paper)}.btn:hover{background:#55514a;color:white}
@@ -54,7 +57,14 @@ body{background:#faf9f7;background-image:radial-gradient(ellipse at 50% 4%,rgba(
 </head>
 <body>
 <header><a href="#home" class="wordmark" aria-label="Evros and Maria home">E &amp; M</a><div class="top-actions"><button class="header-link" id="install-app" type="button" title="Download wedding app" data-en="↓ Download" data-el="↓ Λήψη">↓ Download</button><button id="language" class="language" type="button" aria-label="Switch language">ΕΛ / EN</button></div></header>
-<main><section id="install-guide" class="install-guide" hidden aria-live="polite"><h2 data-en="Install our wedding app" data-el="Εγκατάσταση εφαρμογής">Install our wedding app</h2><p id="install-instructions"></p></section>
+<main><section id="install-guide" class="install-guide" hidden aria-label="Wedding app installation">
+<button id="install-close" type="button" aria-label="Close installation guide">×</button>
+<h2 data-en="Install our wedding app" data-el="Εγκατάσταση εφαρμογής">Install our wedding app</h2>
+<p id="install-device" role="status" aria-live="polite"></p>
+<ol id="install-steps"></ol>
+<p id="install-instructions" class="install-note"></p>
+<div class="install-actions"><button id="install-now" type="button" hidden data-en="Install app now" data-el="Εγκατάσταση τώρα">Install app now</button><button id="install-help" type="button" data-en="Show instructions" data-el="Οδηγίες εγκατάστασης">Show instructions</button></div>
+</section>
 <section class="hero hero-editorial" id="home"><div class="hero-ornament hero-ornament-left" aria-hidden="true">✦</div><div class="hero-ornament hero-ornament-right" aria-hidden="true">✦</div><div class="hero-overline" data-en="THE WEDDING CELEBRATION OF" data-el="Ο ΓΑΜΟΣ ΤΟΥ ΕΒΡΟΥ ΚΑΙ ΤΗΣ ΜΑΡΙΑΣ">THE WEDDING CELEBRATION OF</div><div class="hero-small-rule" aria-hidden="true"><span>✧</span></div>
 <img src="./monogram.png?v=20261012" alt="Evros and Maria wedding monogram" class="monogram" onerror="this.style.display='none';document.querySelector('.monogram-fallback').style.display='block'">
 <div class="monogram-fallback" aria-hidden="true">E &amp; M</div>
@@ -86,6 +96,66 @@ function countdown(){let n=Math.max(0,wedding-Date.now());const d=Math.floor(n/8
 countdown();setInterval(countdown,1000);
 async function loadHomeWishes(){const root=document.getElementById('home-wishes-list');if(!root)return;try{const r=await fetch('https://evros-maria-wedding.evros-christodoulou1995.workers.dev/wedding/wishes',{cache:'no-store'});if(!r.ok)throw Error();const d=await r.json();root.replaceChildren();const wishes=(d.wishes||[]).slice(0,3);if(!wishes.length){const p=document.createElement('p');p.textContent='No wishes published yet.';p.style.cssText='font-size:12px;color:#79756e';root.append(p)}for(const w of wishes){const div=document.createElement('div'),p=document.createElement('p'),small=document.createElement('small');div.className='wish';p.textContent='“'+w.message+'”';small.textContent='— '+w.name;div.append(p,small);root.append(div)}}catch{root.textContent='';}}loadHomeWishes();
 let lang=localStorage.getItem('wedding-lang')==='el'?'el':'en';document.documentElement.lang=lang;document.querySelectorAll('[data-en]').forEach(el=>{el.textContent=el.dataset[lang]});document.getElementById('language').addEventListener('click',()=>{lang=lang==='en'?'el':'en';localStorage.setItem('wedding-lang',lang);document.documentElement.lang=lang;document.querySelectorAll('[data-en]').forEach(el=>{el.textContent=el.dataset[lang]})});
-let deferredInstallPrompt=null;window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstallPrompt=event});document.getElementById('install-app').addEventListener('click',async()=>{if(deferredInstallPrompt){const prompt=deferredInstallPrompt;deferredInstallPrompt=null;await prompt.prompt();return}const panel=document.getElementById('install-guide');panel.hidden=!panel.hidden;if(!panel.hidden){const ios=/iPad|iPhone|iPod/.test(navigator.userAgent);const el=lang==='el';document.getElementById('install-instructions').textContent=ios?(el?'Στο Safari: Κοινοποίηση → Προσθήκη στην οθόνη Αφετηρίας → Προσθήκη.':'In Safari: Share → Add to Home Screen → Add.'):(el?'Στο Chrome: μενού ⋮ → Εγκατάσταση εφαρμογής ή Προσθήκη στην αρχική οθόνη.':'In Chrome: menu ⋮ → Install app or Add to Home screen.');panel.scrollIntoView({behavior:'smooth',block:'start'})}});if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=67').catch(()=>{}));
+let deferredInstallPrompt=null;
+const installButton=document.getElementById('install-app'),installGuide=document.getElementById('install-guide'),installNow=document.getElementById('install-now'),installSteps=document.getElementById('install-steps'),installDevice=document.getElementById('install-device'),installInfo=document.getElementById('install-instructions');
+const isStandalone=()=>window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+function installPlatform(){
+ const ua=navigator.userAgent||'',ios=/iPhone|iPad|iPod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),android=/Android/i.test(ua),safari=/Safari/i.test(ua)&&!/CriOS|FxiOS|EdgiOS|OPiOS/i.test(ua),chrome=/Chrome|CriOS/i.test(ua)&&!/Edg|OPR/i.test(ua);
+ return {ios,android,safari,chrome};
+}
+function installText(en,el){return lang==='el'?el:en}
+function addInstallSteps(lines){installSteps.replaceChildren();for(const text of lines){const li=document.createElement('li');li.textContent=text;installSteps.append(li)}}
+function refreshInstallGuide(){
+ const p=installPlatform();
+ installNow.hidden=!deferredInstallPrompt||isStandalone();
+ document.getElementById('install-help').hidden=false;
+ if(isStandalone()){
+  installDevice.textContent=installText('Already installed ✓','Η εφαρμογή είναι ήδη εγκατεστημένη ✓');
+  addInstallSteps([installText('You are using the wedding app from your Home Screen.','Χρησιμοποιείτε ήδη την εφαρμογή από την αρχική σας οθόνη.')]);
+  installInfo.textContent='';
+  return;
+ }
+ if(p.ios){
+  installDevice.textContent=installText('iPhone / iPad','iPhone / iPad');
+  addInstallSteps(p.safari?
+   [installText('Tap Share (the square with an upward arrow) in Safari.','Πατήστε Κοινοποίηση (τετράγωνο με βέλος προς τα πάνω) στο Safari.'),
+    installText('Choose Add to Home Screen. If hidden, scroll down in the share menu.','Επιλέξτε Προσθήκη στην οθόνη Αφετηρίας. Αν δεν εμφανίζεται, κυλήστε προς τα κάτω.'),
+    installText('Tap Add and launch E & M from your Home Screen.','Πατήστε Προσθήκη και ανοίξτε το E & M από την αρχική οθόνη.')]:
+   [installText('Open this wedding website in Safari.','Ανοίξτε την ιστοσελίδα γάμου στο Safari.'),
+    installText('Tap Share → Add to Home Screen → Add.','Πατήστε Κοινοποίηση → Προσθήκη στην οθόνη Αφετηρίας → Προσθήκη.'),
+    installText('Open the new E & M icon on your Home Screen.','Ανοίξτε το νέο εικονίδιο E & M στην αρχική οθόνη.')]);
+  installInfo.textContent=installText('iOS does not support a direct install popup from this button.','Στο iPhone/iPad η εγκατάσταση γίνεται από το μενού κοινοποίησης, όχι με αυτόματο παράθυρο.');
+ }else if(p.android){
+  installDevice.textContent=installText('Android phone / tablet','Κινητό / tablet Android');
+  addInstallSteps(deferredInstallPrompt?
+   [installText('Tap Install app now below.','Πατήστε Εγκατάσταση τώρα παρακάτω.'),
+    installText('Confirm Install or Add on the browser prompt.','Επιβεβαιώστε Εγκατάσταση ή Προσθήκη στο παράθυρο του περιηγητή.'),
+    installText('Open E & M from your Home Screen.','Ανοίξτε το E & M από την αρχική οθόνη.')]:
+   [installText('In Chrome, tap the ⋮ menu (usually at the top right).','Στο Chrome πατήστε το μενού ⋮ (συνήθως πάνω δεξιά).'),
+    installText('Tap Install app or Add to Home screen.','Πατήστε Εγκατάσταση εφαρμογής ή Προσθήκη στην αρχική οθόνη.'),
+    installText('Confirm and find E & M on your Home Screen.','Επιβεβαιώστε και βρείτε το E & M στην αρχική οθόνη.')]);
+  installInfo.textContent=installText('If opened inside WhatsApp or Instagram, first open the page in Chrome.','Αν ανοίξατε τον σύνδεσμο μέσα από WhatsApp ή Instagram, ανοίξτε τον πρώτα στο Chrome.');
+ }else{
+  installDevice.textContent=installText('Computer / other browser','Υπολογιστής / άλλος περιηγητής');
+  addInstallSteps(deferredInstallPrompt?
+   [installText('Tap Install app now.','Πατήστε Εγκατάσταση τώρα.'),installText('Confirm the browser installation request.','Επιβεβαιώστε το αίτημα εγκατάστασης.')]:
+   [installText('In Chrome or Edge, open the browser menu (⋮).','Στο Chrome ή Edge, ανοίξτε το μενού (⋮).'),
+    installText('Choose Install Evros & Maria or Apps → Install this site as an app.','Επιλέξτε Εγκατάσταση Evros & Maria ή Εφαρμογές → Εγκατάσταση αυτής της ιστοσελίδας.')]);
+  installInfo.textContent=installText('The wedding website also works normally without installation.','Η ιστοσελίδα γάμου λειτουργεί κανονικά και χωρίς εγκατάσταση.');
+ }
+}
+function openInstallGuide(){installGuide.hidden=false;refreshInstallGuide();installGuide.scrollIntoView({behavior:'smooth',block:'start'})}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;refreshInstallGuide()});
+window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;installButton.dataset.en='✓ Installed';installButton.dataset.el='✓ Εγκαταστάθηκε';installButton.textContent=installText('✓ Installed','✓ Εγκαταστάθηκε');refreshInstallGuide()});
+installButton.addEventListener('click',openInstallGuide);
+installNow.addEventListener('click',async()=>{
+ if(!deferredInstallPrompt){openInstallGuide();return}
+ const prompt=deferredInstallPrompt;deferredInstallPrompt=null;
+ try{await prompt.prompt();const choice=await prompt.userChoice;if(choice?.outcome==='accepted'){installDevice.textContent=installText('Installation started ✓','Η εγκατάσταση ξεκίνησε ✓')}else{installInfo.textContent=installText('You can install later using the browser menu.','Μπορείτε να εγκαταστήσετε αργότερα από το μενού του περιηγητή.')}}catch{installInfo.textContent=installText('Use the browser menu and follow the steps above.','Χρησιμοποιήστε το μενού του περιηγητή και ακολουθήστε τα βήματα παραπάνω.')}finally{refreshInstallGuide()}
+});
+document.getElementById('install-help').addEventListener('click',refreshInstallGuide);
+document.getElementById('install-close').addEventListener('click',()=>installGuide.hidden=true);
+document.getElementById('language').addEventListener('click',()=>{if(!installGuide.hidden)refreshInstallGuide()});
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=68').catch(()=>{}));
 </script>
 </body></html>
