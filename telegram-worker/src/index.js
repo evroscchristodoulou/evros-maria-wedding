@@ -32,8 +32,8 @@ export default {
           if(!d||!Array.isArray(d.guests)||!Array.isArray(d.tables)||d.guests.length>1000||d.tables.length>100)return json({error:'Invalid guest plan'},400);
           const old=await env.SUBSCRIBERS.get(key,'json')||{tables:[],guests:[]};
           const oldById=new Map(old.guests.map(x=>[x.id,x]));
-          const guests=d.guests.map(x=>{const prior=oldById.get(x.id);return {id:String(x.id||'').slice(0,80),name:String(x.name||'').trim().slice(0,100),partySize:Number(x.partySize),rsvp:['yes','no','pending'].includes(x.rsvp)?x.rsvp:'pending',adults:Number.isInteger(x.adults)?x.adults:undefined,children:Number.isInteger(x.children)?x.children:undefined,tableId:x.rsvp==='yes'?String(x.tableId||'').slice(0,80):'',updatedAt:prior?.updatedAt||null}});
-          if(guests.some(x=>!x.id||!x.name||!Number.isInteger(x.partySize)||x.partySize<1||x.partySize>30)||new Set(guests.map(x=>x.id)).size!==guests.length)return json({error:'Invalid guest records'},400);
+          const guests=d.guests.map(x=>{const prior=oldById.get(x.id);return {id:String(x.id||'').slice(0,80),name:String(x.name||'').trim().slice(0,100),partySize:Number(x.partySize),invitedAdults:Number.isInteger(x.invitedAdults)?x.invitedAdults:Number(x.partySize),invitedChildren:Number.isInteger(x.invitedChildren)?x.invitedChildren:0,rsvp:['yes','no','pending'].includes(x.rsvp)?x.rsvp:'pending',adults:Number.isInteger(x.adults)?x.adults:undefined,children:Number.isInteger(x.children)?x.children:undefined,tableId:x.rsvp==='yes'?String(x.tableId||'').slice(0,80):'',updatedAt:prior?.updatedAt||null}});
+          if(guests.some(x=>!x.id||!x.name||!Number.isInteger(x.partySize)||x.partySize<1||x.partySize>30||x.invitedAdults<0||x.invitedChildren<0||x.invitedAdults+x.invitedChildren!==x.partySize)||new Set(guests.map(x=>x.id)).size!==guests.length)return json({error:'Invalid guest records'},400);
           const tables=d.tables.map(x=>({id:String(x.id||'').slice(0,80),name:String(x.name||'').trim().slice(0,80),capacity:Number(x.capacity)}));
           if(tables.some(x=>!x.id||!x.name||!Number.isInteger(x.capacity)||x.capacity<1||x.capacity>50))return json({error:'Invalid tables'},400);
           for(const t of tables)if(guests.filter(x=>x.tableId===t.id).reduce((n,x)=>n+x.partySize,0)>t.capacity)return json({error:'Table capacity exceeded'},400);
@@ -45,7 +45,7 @@ export default {
         const d=await request.json().catch(()=>null),query=String(d?.name||'').trim().toLocaleLowerCase();
         if(query.length<3)return json({error:'Enter at least three characters'},400);
         const plan=await env.SUBSCRIBERS.get('wedding:test:guest-plan','json')||{guests:[]};
-        return json({matches:plan.guests.filter(x=>x.name.toLocaleLowerCase().includes(query)).slice(0,12).map(x=>({id:x.id,name:x.name,partySize:x.partySize,rsvp:x.rsvp}))});
+        return json({matches:plan.guests.filter(x=>x.name.toLocaleLowerCase().includes(query)).slice(0,12).map(x=>({id:x.id,name:x.name,partySize:x.partySize,invitedAdults:x.invitedAdults??x.partySize,invitedChildren:x.invitedChildren??0,rsvp:x.rsvp}))});
       }
       if(url.pathname==='/wedding/invitation/reply'&&request.method==='POST'){
         const d=await request.json().catch(()=>null);
@@ -53,7 +53,7 @@ export default {
         const key='wedding:test:guest-plan',plan=await env.SUBSCRIBERS.get(key,'json')||{guests:[]};
         const guest=plan.guests.find(x=>x.id===d.id);if(!guest)return json({error:'Invitation not found'},404);
         const adults=Number(d.adults),children=Number(d.children);
-        if(!Number.isInteger(adults)||!Number.isInteger(children)||adults<0||children<0||adults+children>(d.attending?guest.partySize:0)||d.attending&&adults+children<1||!d.attending&&(adults!==0||children!==0))return json({error:'Invalid attendance count'},400);
+        if(!Number.isInteger(adults)||!Number.isInteger(children)||adults<0||children<0||adults>(d.attending?(guest.invitedAdults??guest.partySize):0)||children>(d.attending?(guest.invitedChildren??0):0)||d.attending&&adults+children<1||!d.attending&&(adults!==0||children!==0))return json({error:'Invalid attendance count'},400);
         guest.rsvp=d.attending?'yes':'no';guest.adults=adults;guest.children=children;if(!d.attending)guest.tableId='';
         guest.updatedAt=new Date().toISOString();
         await env.SUBSCRIBERS.put(key,JSON.stringify(plan));return json({ok:true});
