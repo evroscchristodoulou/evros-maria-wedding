@@ -42,7 +42,7 @@ rsvpSummary();
 document.getElementById('songs').onclick=()=>listing('song');document.getElementById('wishes').onclick=()=>listing('wish');document.getElementById('photos').onclick=photos;translate();listing('song');
 </script><script>
 document.getElementById('download-guest-template').addEventListener('click',()=>{
- const csv='\uFEFFName,Invited Adults,Invited Children,RSVP\r\n';
+ const csv='\uFEFFName,Invited Adults,Invited Children,RSVP\r\nExample Family,2,2,pending\r\n';
  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
  const url=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=url;a.download='evros-maria-guest-list-template.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
