@@ -10,3 +10,9 @@ id = "5a57cb0a45bc42fb8de395f8441ec2e9"
 [[r2_buckets]]
 binding = "PHOTOS"
 bucket_name = "evros-maria-wedding-photos"
+
+# Shared public TEST budget only. Real financial data requires authentication.
+[[d1_databases]]
+binding = "BUDGET_DB"
+database_name = "evros-maria-wedding-test-budget"
+database_id = "fa9a4a2c-571e-486f-a678-7a03e6c5c315"
