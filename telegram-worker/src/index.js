@@ -12,10 +12,10 @@ export default {
       if(request.method!=='GET' && request.headers.get('Origin')!==origin)return json({error:'Forbidden'},403);
       // Guest web push subscription preparation. VAPID_PUBLIC_KEY must be configured before opt-in.
       if(url.pathname==='/wedding/push/config'&&request.method==='GET'){
-        return json({enabled:!!env.VAPID_PUBLIC_KEY,publicKey:env.VAPID_PUBLIC_KEY||null});
+        return json({enabled:!!(env.VAPID_PUBLIC_KEY&&env.VAPID_PRIVATE_KEY&&env.ADMIN_SECRET),publicKey:env.VAPID_PUBLIC_KEY||null});
       }
       if(url.pathname==='/wedding/push/subscribe'&&request.method==='POST'){
-        if(!env.VAPID_PUBLIC_KEY)return json({error:'Push notifications are not configured yet'},503);
+        if(!env.VAPID_PUBLIC_KEY||!env.VAPID_PRIVATE_KEY||!env.ADMIN_SECRET)return json({error:'Push notifications are not configured yet'},503);
         const raw=await request.text();if(raw.length>4096)return json({error:'Subscription too large'},413);
         let sub;try{sub=JSON.parse(raw)}catch{return json({error:'Invalid subscription'},400)}
         if(typeof sub.endpoint!=='string'||sub.endpoint.length>1600||!sub.endpoint.startsWith('https://')||!sub.keys||typeof sub.keys.p256dh!=='string'||typeof sub.keys.auth!=='string'||sub.keys.p256dh.length>300||sub.keys.auth.length>200)return json({error:'Invalid subscription'},400);
@@ -333,7 +333,7 @@ async function deliverPush(sub,payload,env){
   const x=toB64(publicRaw.slice(1,33)),y=toB64(publicRaw.slice(33)),d=toB64(privateRaw);
   const signing=await crypto.subtle.importKey('jwk',{kty:'EC',crv:'P-256',x,y,d,ext:true}, {name:'ECDSA',namedCurve:'P-256'},false,['sign']);
   const header=toB64(encoder.encode(JSON.stringify({typ:'JWT',alg:'ES256'})));
-  const claim=toB64(encoder.encode(JSON.stringify({aud:endpoint.origin,exp:Math.floor(Date.now()/1000)+3600,sub:'mailto:wedding-notifications@example.com'})));
+  const claim=toB64(encoder.encode(JSON.stringify({aud:endpoint.origin,exp:Math.floor(Date.now()/1000)+3600,sub:'https://evroscchristodoulou.github.io/evros-maria-wedding/'})));
   const signature=new Uint8Array(await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},signing,encoder.encode(header+'.'+claim)));
   const jwt=header+'.'+claim+'.'+toB64(signature);
   return fetch(endpoint.href,{method:'POST',headers:{'TTL':'86400','Content-Encoding':'aes128gcm','Content-Type':'application/octet-stream','Authorization':'vapid t='+jwt+', k='+env.VAPID_PUBLIC_KEY},body});
