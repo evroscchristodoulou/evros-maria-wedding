@@ -20,24 +20,23 @@ async function refresh(){
    const data=(await response.json()).data;
    if(!Array.isArray(data))throw Error();
    const local=JSON.parse(localStorage.getItem(DATA_KEY)||'[]');
-   const remote=JSON.stringify(data);
    const localCanonical=JSON.stringify(local);
    const linked=localStorage.getItem(LINKED_KEY)==='1';
    const shadow=localStorage.getItem(SHADOW_KEY);
-   if(local.length&&localCanonical!==remote&&!linked){
-     message('Different local budget detected. Open Budget and choose which figures everyone should use.','Βρέθηκαν διαφορετικά τοπικά έξοδα. Ανοίξτε τα Έξοδα και επιλέξτε ποια ποσά θα βλέπουν όλοι.');
-     return;
-   }
-   if(linked&&shadow!==null&&localCanonical!==shadow){
-     message('This device has unsynced local figures. Open Budget to resolve before refreshing.','Υπάρχουν μη συγχρονισμένα τοπικά ποσά. Ανοίξτε τα Έξοδα πριν την ανανέωση.');
-     return;
-   }
    const normalized=data.map(s=>({
       id:String(s.id||''),name:String(s.name||''),category:String(s.category||'Other'),
       cost:Number(s.cost)||0,payments:Array.isArray(s.payments)?s.payments.map(p=>({id:String(p.id||''),amount:Number(p.amount)||0,date:String(p.date||''),note:String(p.note||'')})):[],
       due:String(s.due||''),remindDays:Number(s.remindDays??3),notes:String(s.notes||'')
    }));
    const next=JSON.stringify(normalized);
+   if(local.length&&localCanonical!==next&&!linked){
+     message('Different local budget detected. Open Budget and choose which figures everyone should use.','Βρέθηκαν διαφορετικά τοπικά έξοδα. Ανοίξτε τα Έξοδα και επιλέξτε ποια ποσά θα βλέπουν όλοι.');
+     return;
+   }
+   if(linked&&localCanonical!==next&&(shadow===null||localCanonical!==shadow)){
+     message('This device has unsynced local figures. Open Budget to resolve before refreshing.','Υπάρχουν μη συγχρονισμένα τοπικά ποσά. Ανοίξτε τα Έξοδα πριν την ανανέωση.');
+     return;
+   }
    if(localCanonical!==next){localStorage.setItem(DATA_KEY,next);render()}
    localStorage.setItem(SHADOW_KEY,next);
    localStorage.setItem(LINKED_KEY,'1');
