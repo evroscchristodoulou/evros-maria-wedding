@@ -3,13 +3,34 @@ export default {
     const url = new URL(request.url);
 
     const origin='https://evroscchristodoulou.github.io';
-    const cors={'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Methods':'GET,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Content-Type,Authorization','Cache-Control':'no-store','Vary':'Origin'};
+    const cors={'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Methods':'GET,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Content-Type,Authorization,X-Wedding-Sync-Key','Cache-Control':'no-store','Vary':'Origin'};
     if(url.pathname.startsWith('/wedding/') || url.pathname==='/photos/delete'){
       if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
       const json=(body,status=200)=>Response.json(body,{status,headers:cors});
       const admin=!!env.ADMIN_SECRET && request.headers.get('Authorization')==='Bearer '+env.ADMIN_SECRET;
       if(!env.SUBSCRIBERS)return json({error:'Storage unavailable'},503);
       if(request.method!=='GET' && request.headers.get('Origin')!==origin)return json({error:'Forbidden'},403);
+
+      // Test-only cross-device budget. A high-entropy pairing key identifies each isolated workspace.
+      if(url.pathname==='/wedding/budget-sync' && (request.method==='GET'||request.method==='POST')){
+        const token=request.headers.get('X-Wedding-Sync-Key')||'';
+        if(!/^[a-f0-9]{64}$/.test(token))return json({error:'Pairing key required'},401);
+        const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)));
+        const identity=Array.from(digest,x=>x.toString(16).padStart(2,'0')).join('');
+        const storageKey='wedding:test-budget:'+identity;
+        const stored=await env.SUBSCRIBERS.get(storageKey,'json');
+        if(request.method==='GET')return json({exists:!!stored,data:stored?.data||[],revision:stored?.revision||null});
+        const raw=await request.text();
+        if(raw.length>100000)return json({error:'Budget too large'},413);
+        let input;try{input=JSON.parse(raw)}catch{return json({error:'Invalid JSON'},400)}
+        if(!input||!Array.isArray(input.data)||input.data.length>500)return json({error:'Invalid budget'},400);
+        const valid=input.data.every(x=>x&&typeof x.id==='string'&&x.id.length<=90&&typeof x.name==='string'&&x.name.length<=100&&x.name.trim()&&typeof x.category==='string'&&x.category.length<=60&&Number.isFinite(x.cost)&&x.cost>=0&&x.cost<=100000000&&Array.isArray(x.payments)&&x.payments.length<=300&&x.payments.every(p=>p&&typeof p.id==='string'&&p.id.length<=90&&Number.isFinite(p.amount)&&p.amount>0&&p.amount<=100000000&&typeof p.date==='string'&&p.date.length<=10&&typeof p.note==='string'&&p.note.length<=180)&&typeof x.due==='string'&&x.due.length<=10&&typeof x.notes==='string'&&x.notes.length<=300);
+        if(!valid)return json({error:'Invalid expense records'},400);
+        if((input.revision||null)!==(stored?.revision||null))return json({error:'Budget changed on another device. Refresh to review before saving.',revision:stored?.revision||null},409);
+        const revision=crypto.randomUUID();
+        await env.SUBSCRIBERS.put(storageKey,JSON.stringify({data:input.data,revision,updatedAt:new Date().toISOString()}));
+        return json({ok:true,revision});
+      }
       // Financial data and checklist must not be exposed via unauthenticated public APIs.
       if(url.pathname==='/wedding/private-data'){
         if(!admin)return json({error:'Administrator authentication required'},401);
