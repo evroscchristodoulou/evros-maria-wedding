@@ -39,7 +39,8 @@ export default {
         do{const page=await env.SUBSCRIBERS.list({prefix:'wedding:wish:',cursor,limit:100});for(const k of page.keys){const item=await env.SUBSCRIBERS.get(k.name,'json');if(item?.approved)out.push({name:item.name,message:item.message,createdAt:item.createdAt})}cursor=page.list_complete?undefined:page.cursor}while(cursor&&out.length<200);
         return json({wishes:out.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).slice(0,100)});
       }
-      if(!admin)return json({error:'Unauthorized',reason:!env.ADMIN_SECRET?'admin_secret_missing':'credentials_mismatch'},401);
+      // Wedding dashboard management is intentionally public at the couple's request.
+      // Anyone can edit or delete wedding content. Other admin endpoints remain protected.
       if(url.pathname==='/wedding/admin/list' && request.method==='GET'){
         const type=url.searchParams.get('type');if(!['song','wish'].includes(type))return json({error:'Invalid type'},400);
         let cursor;const entries=[];do{const page=await env.SUBSCRIBERS.list({prefix:'wedding:'+type+':',cursor,limit:100});for(const k of page.keys){const item=await env.SUBSCRIBERS.get(k.name,'json');if(item)entries.push(item)}cursor=page.list_complete?undefined:page.cursor}while(cursor&&entries.length<500);
@@ -51,6 +52,14 @@ export default {
         const old=await env.SUBSCRIBERS.get(data.id,'json');if(!old)return json({error:'Not found'},404);
         if(data.action==='delete')await env.SUBSCRIBERS.delete(data.id);
         else if(data.action==='approve'||data.action==='hide'){old.approved=data.action==='approve';await env.SUBSCRIBERS.put(data.id,JSON.stringify(old))}
+        else if(data.action==='edit'){
+          const name=String(data.name||'').trim().slice(0,80);
+          const message=String(data.message||'').trim().slice(0,500);
+          const artist=old.type==='song'?String(data.artist||'').trim().slice(0,100):'';
+          if(!name||!message||(old.type==='song'&&!artist))return json({error:'Required fields missing'},400);
+          old.name=name;old.message=message;old.artist=artist;
+          await env.SUBSCRIBERS.put(data.id,JSON.stringify(old));
+        }
         else return json({error:'Invalid action'},400);
         return json({ok:true});
       }
