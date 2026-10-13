@@ -22,6 +22,39 @@ export default {
         await env.SUBSCRIBERS.put(key,JSON.stringify({id:key,type,name,message,artist: type==='song'?artist:'',approved:false,createdAt:new Date().toISOString()}));
         return json({ok:true,moderation:true},201);
       }
+      // RSVP entries are stored in KV. A private edit token is returned only to the submitting guest.
+      if(url.pathname==='/wedding/rsvp' && request.method==='POST'){
+        const raw=await request.text();if(raw.length>4096)return json({error:'Request too long'},413);
+        let d;try{d=JSON.parse(raw)}catch{return json({error:'Invalid JSON'},400)}
+        const name=String(d.name||'').trim().slice(0,100);
+        const attending=d.attending;
+        const adults=Number(d.adults),children=Number(d.children);
+        const dietary=String(d.dietary||'').trim().slice(0,400);
+        const notes=String(d.notes||'').trim().slice(0,400);
+        if(!name||typeof attending!=='boolean'||!Number.isInteger(adults)||!Number.isInteger(children)||adults<0||adults>20||children<0||children>20||(attending&&adults+children<1)||(!attending&&(adults!==0||children!==0)))return json({error:'Invalid RSVP details'},400);
+        const id=crypto.randomUUID(),token=crypto.randomUUID()+crypto.randomUUID();
+        const entry={id,name,attending,adults,children,dietary,notes,token,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+        await env.SUBSCRIBERS.put('wedding:rsvp:'+id,JSON.stringify(entry));
+        return json({ok:true,id,token},201);
+      }
+      if(url.pathname==='/wedding/rsvp/manage' && request.method==='POST'){
+        const d=await request.json().catch(()=>null);
+        if(!d||typeof d.id!=='string'||typeof d.token!=='string'||!/^[a-f0-9-]{36}$/.test(d.id))return json({error:'Invalid request'},400);
+        const key='wedding:rsvp:'+d.id,old=await env.SUBSCRIBERS.get(key,'json');
+        if(!old||old.token!==d.token)return json({error:'RSVP not found or link invalid'},404);
+        if(d.action==='read')return json({entry:{name:old.name,attending:old.attending,adults:old.adults,children:old.children,dietary:old.dietary,notes:old.notes}});
+        if(d.action==='delete'){await env.SUBSCRIBERS.delete(key);return json({ok:true})}
+        if(d.action!=='edit')return json({error:'Invalid action'},400);
+        const name=String(d.name||'').trim().slice(0,100),attending=d.attending,adults=Number(d.adults),children=Number(d.children);
+        if(!name||typeof attending!=='boolean'||!Number.isInteger(adults)||!Number.isInteger(children)||adults<0||adults>20||children<0||children>20||(attending&&adults+children<1)||(!attending&&(adults!==0||children!==0)))return json({error:'Invalid RSVP details'},400);
+        Object.assign(old,{name,attending,adults,children,dietary:String(d.dietary||'').trim().slice(0,400),notes:String(d.notes||'').trim().slice(0,400),updatedAt:new Date().toISOString()});
+        await env.SUBSCRIBERS.put(key,JSON.stringify(old));return json({ok:true});
+      }
+      if(url.pathname==='/wedding/rsvp/summary' && request.method==='GET'){
+        let cursor;const totals={responses:0,attending:0,declined:0,adults:0,children:0};
+        do{const page=await env.SUBSCRIBERS.list({prefix:'wedding:rsvp:',cursor,limit:100});for(const k of page.keys){const e=await env.SUBSCRIBERS.get(k.name,'json');if(!e)continue;totals.responses++;if(e.attending){totals.attending++;totals.adults+=e.adults;totals.children+=e.children}else totals.declined++}cursor=page.list_complete?undefined:page.cursor}while(cursor&&totals.responses<10000);
+        return json({summary:totals});
+      }
       if(url.pathname==='/wedding/songs' && request.method==='GET'){
         const entries=[];let cursor;
         do {
