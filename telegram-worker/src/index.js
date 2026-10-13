@@ -41,7 +41,7 @@ export default {
             db.prepare('SELECT id,name,category,cost,due,remindDays,notes FROM expenses ORDER BY rowid').all(),
             db.prepare('SELECT id,expense_id,amount,date,note FROM payments ORDER BY rowid').all()
           ]);
-          const data=(e.results||[]).map(x=>({...x,remindDays:Number(x.remindDays)||3,payments:[]}));
+          const data=(e.results||[]).map(x=>({...x,remindDays:Number(x.remindDays??3),payments:[]}));
           const byId=new Map(data.map(x=>[x.id,x]));
           for(const pay of p.results||[]){const entry=byId.get(pay.expense_id);if(entry)entry.payments.push({id:pay.id,amount:pay.amount,date:pay.date,note:pay.note})}
           return json({data,testMode:true});
