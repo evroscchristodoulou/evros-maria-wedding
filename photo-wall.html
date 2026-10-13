@@ -1,1 +1,88 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#faf9f7"><title>Wedding photo wall · Evros &amp; Maria</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet"><style>:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#faf9f7;color:#292723;font-family:Inter,Arial,sans-serif}header{display:flex;justify-content:space-between;align-items:center;padding:16px 4vw;border-bottom:1px solid #e2dcd3}header a{color:inherit;text-decoration:none;font-family:'Cormorant Garamond',Georgia,serif;font-size:24px}header button{border:1px solid #dcd6cc;border-radius:20px;background:transparent;padding:8px 14px;cursor:pointer}main{max-width:1500px;margin:auto;padding:35px 4vw 60px}.eyebrow{text-align:center;font-size:10px;letter-spacing:.25em;color:#8c8175}h1{text-align:center;font:300 clamp(40px,6vw,76px) 'Cormorant Garamond',Georgia,serif;margin:10px 0 6px}p{text-align:center;color:#81796f;font-size:12px}.toolbar{display:flex;justify-content:center;align-items:center;gap:12px;margin:22px auto 30px;flex-wrap:wrap}.toolbar a,.toolbar button{padding:11px 18px;border:1px solid #d8d0c6;border-radius:8px;color:#342e29;text-decoration:none;background:#fffdfa;font-size:12px;cursor:pointer}.wall{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.photo{margin:0;aspect-ratio:4/3;overflow:hidden;background:#eae5de;border-radius:7px}.photo img{display:block;width:100%;height:100%;object-fit:cover}.wall-empty{grid-column:1/-1;padding:55px 20px;border:1px solid #e3ddd4}.screen-mode header,.screen-mode .toolbar,.screen-mode .eyebrow,.screen-mode p{display:none}.screen-mode main{max-width:none;padding:15px}.screen-mode h1{margin:0 0 12px;font-size:40px}.screen-mode .wall{grid-template-columns:repeat(4,1fr);gap:8px}.screen-mode .photo{aspect-ratio:4/3}@media(max-width:850px){.wall{grid-template-columns:repeat(3,1fr)}}@media(max-width:560px){.wall{grid-template-columns:repeat(2,1fr);gap:7px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}</style></head><body><header><a href="./">E &amp; M</a><button id="language" type="button">ΕΛ / EN</button></header><main><div class="eyebrow">10 · 06 · 2028</div><h1 data-en="Our moments, together." data-el="Οι στιγμές μας, μαζί.">Our moments, together.</h1><p data-en="Wedding photo wall · refreshes automatically" data-el="Το άλμπουμ του γάμου · αυτόματη ανανέωση">Wedding photo wall · refreshes automatically</p><div class="toolbar"><a href="./upload.html" data-en="Share your photos ↗" data-el="Μοιραστείτε φωτογραφίες ↗">Share your photos ↗</a><a href="./album.html" data-en="Open gallery ↗" data-el="Άλμπουμ ↗">Open gallery ↗</a><button id="screen" type="button" data-en="Presentation mode ⛶" data-el="Προβολή σε οθόνη ⛶">Presentation mode ⛶</button><button id="refresh" type="button" data-en="Refresh photos ↻" data-el="Ανανέωση ↻">Refresh photos ↻</button></div><p id="status" aria-live="polite">Loading photos…</p><div class="wall" id="wall"></div></main><script>const API='https://evros-maria-wedding.evros-christodoulou1995.workers.dev';let lang=localStorage.getItem('wedding-lang')==='el'?'el':'en',loading=false,known=new Set();const wall=document.getElementById('wall'),status=document.getElementById('status');function translate(){document.documentElement.lang=lang;document.querySelectorAll('[data-en]').forEach(el=>el.textContent=el.dataset[lang])}document.getElementById('language').onclick=()=>{lang=lang==='en'?'el':'en';localStorage.setItem('wedding-lang',lang);translate()};document.getElementById('screen').onclick=()=>{document.body.classList.toggle('screen-mode');if(document.body.classList.contains('screen-mode')&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});else if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})};async function refresh(){if(loading)return;loading=true;try{let cursor=null,photos=[],pages=0;do{const url=API+'/photos/list'+(cursor?'?cursor='+encodeURIComponent(cursor):'');const response=await fetch(url,{cache:'no-store'});if(!response.ok)throw Error('HTTP '+response.status);const data=await response.json();photos.push(...(data.photos||[]));cursor=data.cursor;pages++}while(cursor&&pages<12);const ids=new Set(photos.map(p=>p.id));for(const node of [...wall.children])if(!ids.has(node.dataset.id))node.remove();for(const p of photos){if(known.has(p.id)&&wall.querySelector('[data-id="'+CSS.escape(p.id)+'"]'))continue;const fig=document.createElement('figure'),img=document.createElement('img');fig.className='photo';fig.dataset.id=p.id;img.loading='lazy';img.alt='Wedding memory';img.src=API+'/photos/view?id='+encodeURIComponent(p.id);fig.append(img);wall.append(fig);known.add(p.id)}status.textContent=photos.length?(lang==='el'?photos.length+' φωτογραφίες':photos.length+' photos'):(lang==='el'?'Δεν υπάρχουν φωτογραφίες ακόμα.':'No photos yet.');if(!photos.length&&!wall.querySelector('.wall-empty')){const empty=document.createElement('div');empty.className='wall-empty';empty.textContent=status.textContent;wall.append(empty)}else if(photos.length){wall.querySelector('.wall-empty')?.remove()}}catch(e){status.textContent='Photo wall unavailable: '+e.message}finally{loading=false}}document.getElementById('refresh').onclick=refresh;translate();refresh();setInterval(refresh,30000);</script></body></html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#11100f"><title>Wedding projector slideshow · Evros & Maria</title><link rel="icon" href="./favicon.svg"><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}html,body{min-height:100%;margin:0}body{background:#11100f;color:#fff;font:13px/1.6 Inter,Arial,sans-serif}a{color:inherit}button,select{font:inherit;color:#f5eee7;border:1px solid #736960;background:#25211e;border-radius:7px;padding:10px 13px;cursor:pointer}button:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid #d5b88c;outline-offset:3px}button:hover{background:#413a34}header{display:flex;justify-content:space-between;align-items:center;padding:15px 28px;border-bottom:1px solid #37302b}header a{font:30px 'Cormorant Garamond',Georgia,serif;text-decoration:none}.intro{text-align:center;padding:15px 18px 5px}.intro h1{font:400 clamp(30px,4vw,51px) 'Cormorant Garamond',serif;margin:0}.eyebrow{font-size:10px;letter-spacing:.23em;color:#d2baa0}.intro p{margin:5px;color:#b3a69a}.toolbar{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:9px;padding:12px 18px}.toolbar label{display:flex;align-items:center;gap:7px;color:#d4c8bd}.toolbar a{font-size:12px;text-decoration:none;border-bottom:1px solid #8e7d6d;padding:6px}.stage{position:relative;height:min(67vh,850px);min-height:330px;background:#050505;overflow:hidden;display:grid;place-items:center}.photo-layer{position:absolute;inset:0;display:grid;place-items:center;opacity:0;transition:opacity 1.2s ease}.photo-layer.active{opacity:1}.photo-layer img{height:100%;width:100%;object-fit:contain}.caption{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.8));padding:50px 24px 18px;text-align:center;pointer-events:none;font:32px 'Cormorant Garamond',Georgia,serif}.caption small{font:11px Inter,Arial,sans-serif;color:#dfd2c3;letter-spacing:.08em;display:block}.empty{position:absolute;text-align:center;max-width:550px;padding:40px 25px;color:#ddd0c0}.empty h2{font:38px 'Cormorant Garamond',serif;margin:0}.empty a{display:inline-block;margin-top:10px}.status{text-align:center;color:#d0c3b6;min-height:26px;padding:10px}footer{text-align:center;color:#97887a;padding:15px 20px;font-size:11px}.projecting header,.projecting .intro,.projecting .toolbar,.projecting footer{display:none}.projecting .stage{height:100dvh;min-height:0;width:100vw}.projecting .status{position:fixed;top:8px;right:14px;z-index:5;background:rgba(0,0,0,.55);padding:5px 10px;border-radius:7px;opacity:0;transition:opacity .3s}.projecting.controls-visible .status{opacity:1}.exit{position:fixed;top:15px;left:15px;z-index:10;display:none;background:#171411c9}.projecting.controls-visible .exit{display:block}@media(prefers-reduced-motion:reduce){.photo-layer{transition:none}}@media(max-width:650px){header{padding:12px 17px}.toolbar{gap:8px}.stage{height:60vh;min-height:250px}.caption{font-size:26px}}
+</style></head><body>
+<header><a href="./">E &amp; M</a><button type="button" id="language">ΕΛ / EN</button></header>
+<div class="intro"><div class="eyebrow">10 · 06 · 2028</div><h1 data-en="Our moments, together." data-el="Οι στιγμές μας, μαζί.">Our moments, together.</h1><p data-en="Continuous wedding projector slideshow · New photos join automatically" data-el="Συνεχής προβολή στον προτζέκτορα · Νέες φωτογραφίες προστίθενται αυτόματα">Continuous wedding projector slideshow · New photos join automatically</p></div>
+<div class="toolbar">
+<button id="project" type="button" data-en="⛶ Start projector" data-el="⛶ Έναρξη προβολής">⛶ Start projector</button>
+<button id="toggle" type="button">⏸ Pause</button>
+<button id="previous" type="button" aria-label="Previous photo">←</button>
+<button id="next" type="button" aria-label="Next photo">→</button>
+<label><span data-en="Each photo" data-el="Κάθε φωτογραφία">Each photo</span><select id="interval"><option value="5000">5s</option><option value="8000" selected>8s</option><option value="12000">12s</option><option value="20000">20s</option></select></label>
+<button id="reload" type="button" data-en="↻ Refresh photos" data-el="↻ Ανανέωση φωτογραφιών">↻ Refresh photos</button>
+<a href="./upload.html" data-en="Upload photos ↗" data-el="Ανέβασμα φωτογραφιών ↗">Upload photos ↗</a>
+<a href="./album.html" data-en="Photo gallery ↗" data-el="Άλμπουμ ↗">Photo gallery ↗</a>
+</div>
+<main><div class="stage" id="stage">
+<div class="photo-layer active" id="layer-a"><img id="image-a" alt="Wedding photo"></div>
+<div class="photo-layer" id="layer-b"><img id="image-b" alt="Wedding photo"></div>
+<div class="caption"><div>E &amp; M</div><small id="position">10.06.2028</small></div>
+<div id="empty" class="empty"><h2 data-en="Waiting for your first wedding photo…" data-el="Αναμονή για την πρώτη φωτογραφία γάμου…">Waiting for your first wedding photo…</h2><p data-en="The slideshow will begin automatically when a guest uploads a photo." data-el="Η προβολή θα αρχίσει αυτόματα όταν ένας καλεσμένος ανεβάσει φωτογραφία.">The slideshow will begin automatically when a guest uploads a photo.</p><a href="./upload.html" data-en="Upload photos" data-el="Ανεβάστε φωτογραφίες">Upload photos</a></div>
+</div><div class="status" id="status" role="status" aria-live="polite">Loading photos…</div></main>
+<button class="exit" id="exit" type="button">✕ Exit projector / Έξοδος</button>
+<footer data-en="Tip: Connect a laptop by HDMI, click Start projector and leave this page open. Browser wake lock is requested when supported; disable computer sleep for reliable all-night playback." data-el="Συμβουλή: Συνδέστε υπολογιστή με HDMI, πατήστε Έναρξη προβολής και αφήστε τη σελίδα ανοικτή. Η οθόνη διατηρείται ενεργή όπου υποστηρίζεται· απενεργοποιήστε την αναστολή λειτουργίας για ολονύχτια προβολή.">Tip: Connect a laptop by HDMI, click Start projector and leave this page open. Browser wake lock is requested when supported; disable computer sleep for reliable all-night playback.</footer>
+<script>
+const API='https://evros-maria-wedding.evros-christodoulou1995.workers.dev';
+const $=id=>document.getElementById(id);
+let lang=localStorage.getItem('wedding-lang')==='el'?'el':'en',photos=[],current=0,shownId=null,active='a',paused=false,loading=false,displayBusy=false,projecting=false,intervalMs=8000,timer=null,wakeLock=null,controlsTimer=null;
+const t=(en,el)=>lang==='el'?el:en;
+function translate(){document.documentElement.lang=lang;document.querySelectorAll('[data-en]').forEach(el=>el.textContent=el.dataset[lang]);$('toggle').textContent=paused?t('▶ Resume','▶ Συνέχεια'):t('⏸ Pause','⏸ Παύση');updateStatus()}
+$('language').onclick=()=>{lang=lang==='en'?'el':'en';localStorage.setItem('wedding-lang',lang);translate()};
+function updateStatus(message){$('status').textContent=message||t(photos.length+' photos · '+(photos.length?current+1:0)+'/'+photos.length+(paused?' · Paused':' · Playing'),photos.length+' φωτογραφίες · '+(photos.length?current+1:0)+'/'+photos.length+(paused?' · Παύση':' · Προβολή'));$('position').textContent=photos.length?(current+1)+' / '+photos.length:'10.06.2028'}
+function urlFor(p){return API+'/photos/view?id='+encodeURIComponent(p.id)}
+function show(index){
+ if(!photos.length){$('empty').hidden=false;updateStatus();return}
+ if(displayBusy)return;
+ current=(index+photos.length)%photos.length;
+ const p=photos[current];if(p.id===shownId){updateStatus();return}
+ displayBusy=true;
+ const next=active==='a'?'b':'a',img=$('image-'+next),layer=$('layer-'+next),old=$('layer-'+active);
+ img.onload=()=>{img.onload=null;img.onerror=null;layer.classList.add('active');old.classList.remove('active');active=next;shownId=p.id;$('empty').hidden=true;updateStatus();displayBusy=false};
+ img.onerror=()=>{img.onload=null;img.onerror=null;displayBusy=false;updateStatus(t('A photo could not load; continuing…','Μια φωτογραφία δεν φορτώθηκε· συνέχεια…'))};
+ img.src=urlFor(p);
+}
+function next(){if(photos.length)show(current+1)}
+function previous(){if(photos.length)show(current-1)}
+function resetTimer(){clearInterval(timer);timer=setInterval(()=>{if(!paused&&!displayBusy)next()},intervalMs)}
+$('next').onclick=()=>{next();resetTimer()};$('previous').onclick=()=>{previous();resetTimer()};
+$('toggle').onclick=()=>{paused=!paused;translate();resetTimer()};
+$('interval').onchange=()=>{intervalMs=Number($('interval').value);resetTimer()};
+async function refresh(){
+ if(loading)return;loading=true;
+ try{
+  let cursor=null,all=[],pages=0;
+  do{
+   const r=await fetch(API+'/photos/list'+(cursor?'?cursor='+encodeURIComponent(cursor):''),{cache:'no-store'});
+   if(!r.ok)throw Error('HTTP '+r.status);
+   const data=await r.json();all.push(...(data.photos||[]));cursor=data.cursor;pages++;
+  }while(cursor&&pages<30);
+  const seen=new Set();const unique=all.filter(p=>p&&p.id&&!seen.has(p.id)&&seen.add(p.id));
+  // Shuffle ordering for varied projection; retain current displayed photo across refreshes.
+  const previousId=shownId;
+  photos=unique;
+  const found=photos.findIndex(p=>p.id===previousId);
+  if(found>=0)current=found;
+  else if(photos.length){current=0;shownId=null}
+  if(!photos.length){$('empty').hidden=false;shownId=null;$('layer-a').classList.remove('active');$('layer-b').classList.remove('active')}
+  else if(!shownId)show(current);
+  updateStatus();
+ }catch(e){updateStatus(t('Connection unavailable; retrying automatically.','Η σύνδεση δεν είναι διαθέσιμη· νέα προσπάθεια αυτόματα.'))}
+ finally{loading=false}
+}
+$('reload').onclick=refresh;
+async function acquireWakeLock(){if(!('wakeLock'in navigator)||document.visibilityState!=='visible')return;try{wakeLock=await navigator.wakeLock.request('screen')}catch{}}
+async function startProjector(){
+ projecting=true;document.body.classList.add('projecting','controls-visible');await acquireWakeLock();
+ try{if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen()}catch{}
+ revealControls();
+}
+function revealControls(){if(!projecting)return;document.body.classList.add('controls-visible');clearTimeout(controlsTimer);controlsTimer=setTimeout(()=>document.body.classList.remove('controls-visible'),5000)}
+function exitProjector(){projecting=false;document.body.classList.remove('projecting','controls-visible');if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});if(wakeLock){wakeLock.release().catch(()=>{});wakeLock=null}}
+$('project').onclick=startProjector;$('exit').onclick=exitProjector;document.addEventListener('mousemove',revealControls);
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){next();resetTimer()}else if(e.key==='ArrowLeft'){previous();resetTimer()}else if(e.key===' '){e.preventDefault();paused=!paused;translate()}else if(e.key==='Escape'&&projecting)exitProjector()});
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&projecting){projecting=false;document.body.classList.remove('projecting','controls-visible')}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(projecting)acquireWakeLock();refresh()}});
+translate();resetTimer();refresh();setInterval(refresh,20000);
+</script></body></html>
