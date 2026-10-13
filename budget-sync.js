@@ -109,6 +109,7 @@ async function drain(){
      await request('POST',{operations:queue[0]});
      queue.shift();saveQueue();
    }
+   localStorage.setItem(SHADOW_KEY,serial());
    status('Saved — totals will match across all devices ✓','Αποθηκεύτηκε — τα σύνολα θα ταιριάζουν σε όλες τις συσκευές ✓');
    setMode('online');
  }catch(e){
