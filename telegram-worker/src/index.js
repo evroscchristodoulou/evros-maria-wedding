@@ -19,7 +19,7 @@ export default {
         const identity=Array.from(digest,x=>x.toString(16).padStart(2,'0')).join('');
         const storageKey='wedding:test-budget:'+identity;
         const stored=await env.SUBSCRIBERS.get(storageKey,'json');
-        if(request.method==='GET')return json({exists:!!stored,data:stored?.data||[],revision:stored?.revision||null});
+        if(request.method==='GET')return json({exists:!!stored,data:stored?.data||[],revision:stored?.revision||null,updatedAt:stored?.updatedAt||null});
         const raw=await request.text();
         if(raw.length>100000)return json({error:'Budget too large'},413);
         let input;try{input=JSON.parse(raw)}catch{return json({error:'Invalid JSON'},400)}
@@ -27,9 +27,9 @@ export default {
         const valid=input.data.every(x=>x&&typeof x.id==='string'&&x.id.length<=90&&typeof x.name==='string'&&x.name.length<=100&&x.name.trim()&&typeof x.category==='string'&&x.category.length<=60&&Number.isFinite(x.cost)&&x.cost>=0&&x.cost<=100000000&&Array.isArray(x.payments)&&x.payments.length<=300&&x.payments.every(p=>p&&typeof p.id==='string'&&p.id.length<=90&&Number.isFinite(p.amount)&&p.amount>0&&p.amount<=100000000&&typeof p.date==='string'&&p.date.length<=10&&typeof p.note==='string'&&p.note.length<=180)&&typeof x.due==='string'&&x.due.length<=10&&typeof x.notes==='string'&&x.notes.length<=300);
         if(!valid)return json({error:'Invalid expense records'},400);
         if((input.revision||null)!==(stored?.revision||null))return json({error:'Budget changed on another device. Refresh to review before saving.',revision:stored?.revision||null},409);
-        const revision=crypto.randomUUID();
-        await env.SUBSCRIBERS.put(storageKey,JSON.stringify({data:input.data,revision,updatedAt:new Date().toISOString()}));
-        return json({ok:true,revision});
+        const revision=crypto.randomUUID(),updatedAt=new Date().toISOString();
+        await env.SUBSCRIBERS.put(storageKey,JSON.stringify({data:input.data,revision,updatedAt}));
+        return json({ok:true,revision,updatedAt});
       }
       // Financial data and checklist must not be exposed via unauthenticated public APIs.
       if(url.pathname==='/wedding/private-data'){
