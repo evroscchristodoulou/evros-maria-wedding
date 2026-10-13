@@ -10,49 +10,6 @@ export default {
       const admin=!!env.ADMIN_SECRET && request.headers.get('Authorization')==='Bearer '+env.ADMIN_SECRET;
       if(!env.SUBSCRIBERS)return json({error:'Storage unavailable'},503);
       if(request.method!=='GET' && request.headers.get('Origin')!==origin)return json({error:'Forbidden'},403);
-      // Guest web push subscription preparation. VAPID_PUBLIC_KEY must be configured before opt-in.
-      if(url.pathname==='/wedding/push/config'&&request.method==='GET'){
-        return json({enabled:!!(env.VAPID_PUBLIC_KEY&&env.VAPID_PRIVATE_KEY&&env.ADMIN_SECRET),publicKey:env.VAPID_PUBLIC_KEY||null});
-      }
-      if(url.pathname==='/wedding/push/subscribe'&&request.method==='POST'){
-        if(!env.VAPID_PUBLIC_KEY||!env.VAPID_PRIVATE_KEY||!env.ADMIN_SECRET)return json({error:'Push notifications are not configured yet'},503);
-        const raw=await request.text();if(raw.length>4096)return json({error:'Subscription too large'},413);
-        let sub;try{sub=JSON.parse(raw)}catch{return json({error:'Invalid subscription'},400)}
-        if(typeof sub.endpoint!=='string'||sub.endpoint.length>1600||!sub.endpoint.startsWith('https://')||!sub.keys||typeof sub.keys.p256dh!=='string'||typeof sub.keys.auth!=='string'||sub.keys.p256dh.length>300||sub.keys.auth.length>200)return json({error:'Invalid subscription'},400);
-        const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(sub.endpoint));const id=Array.from(new Uint8Array(hash)).map(x=>x.toString(16).padStart(2,'0')).join('');
-        await env.SUBSCRIBERS.put('wedding:push:'+id,JSON.stringify({endpoint:sub.endpoint,keys:{p256dh:sub.keys.p256dh,auth:sub.keys.auth},createdAt:new Date().toISOString()}));
-        return json({ok:true},201);
-      }
-      if(url.pathname==='/wedding/push/unsubscribe'&&request.method==='POST'){
-        const raw=await request.text();if(raw.length>2048)return json({error:'Too long'},413);
-        let d;try{d=JSON.parse(raw)}catch{return json({error:'Invalid request'},400)}
-        if(typeof d.endpoint!=='string'||!d.endpoint.startsWith('https://')||d.endpoint.length>1600)return json({error:'Invalid endpoint'},400);
-        const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(d.endpoint));const id=Array.from(new Uint8Array(hash)).map(x=>x.toString(16).padStart(2,'0')).join('');
-        await env.SUBSCRIBERS.delete('wedding:push:'+id);return json({ok:true});
-      }
-      if(url.pathname==='/wedding/push/subscribers'&&request.method==='GET'){
-        if(!admin)return json({error:'Unauthorized'},401);
-        let cursor,count=0;do{const page=await env.SUBSCRIBERS.list({prefix:'wedding:push:',cursor,limit:1000});count+=page.keys.length;cursor=page.list_complete?undefined:page.cursor}while(cursor);return json({count});
-      }
-      if(url.pathname==='/wedding/push/send'&&request.method==='POST'){
-        if(!admin)return json({error:'Administrator passcode required'},401);
-        if(!env.VAPID_PUBLIC_KEY||!env.VAPID_PRIVATE_KEY)return json({error:'Push keys not configured'},503);
-        const raw=await request.text();if(raw.length>1200)return json({error:'Message too long'},413);
-        let d;try{d=JSON.parse(raw)}catch{return json({error:'Invalid message'},400)}
-        const title=String(d.title||'').trim(),body=String(d.body||'').trim(),path=String(d.path||'./').trim();
-        if(!title||title.length>90||!body||body.length>240||!/^\.?\/?[a-zA-Z0-9._/?=&%-]*$/.test(path)||path.includes('..'))return json({error:'Invalid notification'},400);
-        const cursor=typeof d.cursor==='string'&&d.cursor.length<1000?d.cursor:undefined;
-        const page=await env.SUBSCRIBERS.list({prefix:'wedding:push:',limit:30,cursor});
-        let delivered=0,failed=0,expired=0;
-        for(const entry of page.keys){
-          const sub=await env.SUBSCRIBERS.get(entry.name,'json');
-          if(!sub)continue;
-          try{const result=await deliverPush(sub,{title,body,url:path},env);
-            if(result.ok)delivered++;else{failed++;if(result.status===404||result.status===410){expired++;await env.SUBSCRIBERS.delete(entry.name)}}}
-          catch{failed++}
-        }
-        return json({delivered,failed,expired,cursor:page.list_complete?null:page.cursor,complete:page.list_complete});
-      }
       // Financial data and checklist must not be exposed via unauthenticated public APIs.
       if(url.pathname==='/wedding/private-data'){
         if(!admin)return json({error:'Administrator authentication required'},401);
@@ -306,35 +263,3 @@ async function send(env,chat_id,text){
   return {ok:r.ok,status:r.status};
 }
 
-const encoder=new TextEncoder();
-function fromB64(s){const b=atob(s.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-s.length%4)%4));return Uint8Array.from(b,c=>c.charCodeAt(0))}
-function toB64(a){return btoa(String.fromCharCode(...a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
-function concat(...parts){const b=new Uint8Array(parts.reduce((n,p)=>n+p.length,0));let off=0;for(const p of parts){b.set(p,off);off+=p.length}return b}
-async function hkdf(secret,salt,info,length){const key=await crypto.subtle.importKey('raw',secret,'HKDF',false,['deriveBits']);return new Uint8Array(await crypto.subtle.deriveBits({name:'HKDF',hash:'SHA-256',salt,info},key,length*8))}
-async function deliverPush(sub,payload,env){
-  const endpoint=new URL(sub.endpoint);
-  // Only approved push service hosts: prevent arbitrary outbound requests.
-  if(endpoint.protocol!=='https:'||!(['fcm.googleapis.com','updates.push.services.mozilla.com','web.push.apple.com','api.push.apple.com'].includes(endpoint.hostname)||endpoint.hostname.endsWith('.push.apple.com')))throw Error('Unsupported push service');
-  const uaPublic=fromB64(sub.keys.p256dh),auth=fromB64(sub.keys.auth);
-  if(uaPublic.length!==65||auth.length<16)throw Error('Invalid subscription keys');
-  const serverKey=await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveBits']);
-  const serverPub=new Uint8Array(await crypto.subtle.exportKey('raw',serverKey.publicKey));
-  const clientPub=await crypto.subtle.importKey('raw',uaPublic,{name:'ECDH',namedCurve:'P-256'},false,[]);
-  const shared=new Uint8Array(await crypto.subtle.deriveBits({name:'ECDH',public:clientPub},serverKey.privateKey,256));
-  const prk=await hkdf(shared,auth,concat(encoder.encode('WebPush: info'),new Uint8Array([0]),uaPublic,serverPub),32);
-  const salt=crypto.getRandomValues(new Uint8Array(16));
-  const cek=await hkdf(prk,salt,concat(encoder.encode('Content-Encoding: aes128gcm'),new Uint8Array([0])),16);
-  const nonce=await hkdf(prk,salt,concat(encoder.encode('Content-Encoding: nonce'),new Uint8Array([0])),12);
-  const plaintext=concat(encoder.encode(JSON.stringify(payload)),new Uint8Array([2]));
-  const aes=await crypto.subtle.importKey('raw',cek,'AES-GCM',false,['encrypt']);
-  const encrypted=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv:nonce},aes,plaintext));
-  const rs=new Uint8Array([0,0,16,0]);const body=concat(salt,rs,new Uint8Array([65]),serverPub,encrypted);
-  const privateRaw=fromB64(env.VAPID_PRIVATE_KEY),publicRaw=fromB64(env.VAPID_PUBLIC_KEY);
-  const x=toB64(publicRaw.slice(1,33)),y=toB64(publicRaw.slice(33)),d=toB64(privateRaw);
-  const signing=await crypto.subtle.importKey('jwk',{kty:'EC',crv:'P-256',x,y,d,ext:true}, {name:'ECDSA',namedCurve:'P-256'},false,['sign']);
-  const header=toB64(encoder.encode(JSON.stringify({typ:'JWT',alg:'ES256'})));
-  const claim=toB64(encoder.encode(JSON.stringify({aud:endpoint.origin,exp:Math.floor(Date.now()/1000)+3600,sub:'https://evroscchristodoulou.github.io/evros-maria-wedding/'})));
-  const signature=new Uint8Array(await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},signing,encoder.encode(header+'.'+claim)));
-  const jwt=header+'.'+claim+'.'+toB64(signature);
-  return fetch(endpoint.href,{method:'POST',headers:{'TTL':'86400','Content-Encoding':'aes128gcm','Content-Type':'application/octet-stream','Authorization':'vapid t='+jwt+', k='+env.VAPID_PUBLIC_KEY},body});
-}
