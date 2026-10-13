@@ -24,6 +24,11 @@ export default {
       }
       // RSVP entries are stored in KV. A private edit token is returned only to the submitting guest.
       // TEST MODE: unauthenticated guest management. Enable authentication before real guest data.
+      if(url.pathname==='/wedding/seating/public' && request.method==='GET'){
+        const plan=await env.SUBSCRIBERS.get('wedding:test:guest-plan','json');
+        if(!plan?.published)return json({published:false,tables:[]});
+        return json({published:true,tables:plan.tables.map(t=>({id:t.id,name:t.name,capacity:t.capacity})),guests:plan.guests.filter(g=>g.rsvp==='yes'&&g.tableId&&plan.tables.some(t=>t.id===g.tableId)).map(g=>({name:g.name,partySize:g.partySize,tableId:g.tableId}))});
+      }
       if(url.pathname==='/wedding/guest-plan'){
         const key='wedding:test:guest-plan';
         if(request.method==='GET')return json({plan:await env.SUBSCRIBERS.get(key,'json')||{tables:[],guests:[],published:false}});
