@@ -55,6 +55,27 @@ export default {
         do{const page=await env.SUBSCRIBERS.list({prefix:'wedding:rsvp:',cursor,limit:100});for(const k of page.keys){const e=await env.SUBSCRIBERS.get(k.name,'json');if(!e)continue;totals.responses++;if(e.attending){totals.attending++;totals.adults+=e.adults;totals.children+=e.children}else totals.declined++}cursor=page.list_complete?undefined:page.cursor}while(cursor&&totals.responses<10000);
         return json({summary:totals});
       }
+      // Seating assignments remain private until server-side admin authentication is configured.
+      // Guest records and table assignments must never be exposed via unauthenticated GET.
+      if(url.pathname==='/wedding/seating/manage'){
+        if(!admin)return json({error:'Admin authentication required for seating',reason:!env.ADMIN_SECRET?'admin_secret_missing':'credentials_mismatch'},401);
+        const key='wedding:seating:plan';
+        if(request.method==='GET'){
+          const plan=await env.SUBSCRIBERS.get(key,'json')||{tables:[],guests:[],published:false};
+          return json({plan});
+        }
+        if(request.method==='POST'){
+          const d=await request.json().catch(()=>null);
+          if(!d||!Array.isArray(d.tables)||!Array.isArray(d.guests)||d.tables.length>100||d.guests.length>1000)return json({error:'Invalid plan'},400);
+          const tables=d.tables.map(t=>({id:String(t.id||'').slice(0,80),name:String(t.name||'').trim().slice(0,80),capacity:Number(t.capacity)}));
+          if(tables.some(t=>!t.id||!t.name||!Number.isInteger(t.capacity)||t.capacity<1||t.capacity>50)||new Set(tables.map(t=>t.id)).size!==tables.length)return json({error:'Invalid tables'},400);
+          const ids=new Set(tables.map(t=>t.id));
+          const guests=d.guests.map(g=>({id:String(g.id||'').slice(0,80),name:String(g.name||'').trim().slice(0,100),tableId:g.tableId?String(g.tableId).slice(0,80):'',partySize:Number(g.partySize)}));
+          if(guests.some(g=>!g.id||!g.name||!Number.isInteger(g.partySize)||g.partySize<1||g.partySize>30||(g.tableId&&!ids.has(g.tableId)))||new Set(guests.map(g=>g.id)).size!==guests.length)return json({error:'Invalid guests'},400);
+          for(const t of tables)if(guests.filter(g=>g.tableId===t.id).reduce((n,g)=>n+g.partySize,0)>t.capacity)return json({error:'Table capacity exceeded: '+t.name},400);
+          await env.SUBSCRIBERS.put(key,JSON.stringify({tables,guests,published:false,updatedAt:new Date().toISOString()}));return json({ok:true});
+        }
+      }
       if(url.pathname==='/wedding/songs' && request.method==='GET'){
         const entries=[];let cursor;
         do {
