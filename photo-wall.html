@@ -40,7 +40,7 @@ function show(index){
  displayBusy=true;
  const next=active==='a'?'b':'a',img=$('image-'+next),layer=$('layer-'+next),old=$('layer-'+active);
  img.onload=()=>{img.onload=null;img.onerror=null;layer.classList.add('active');old.classList.remove('active');active=next;shownId=p.id;$('empty').hidden=true;updateStatus();displayBusy=false};
- img.onerror=()=>{img.onload=null;img.onerror=null;displayBusy=false;updateStatus(t('A photo could not load; continuing…','Μια φωτογραφία δεν φορτώθηκε· συνέχεια…'))};
+ img.onerror=()=>{img.onload=null;img.onerror=null;displayBusy=false;updateStatus(t('A photo could not load; continuing…','Μια φωτογραφία δεν φορτώθηκε· συνέχεια…'));if(photos.length>1)setTimeout(()=>{if(!displayBusy)show((current+1)%photos.length)},700)};
  img.src=urlFor(p);
 }
 function next(){if(photos.length)show(current+1)}
