@@ -10,6 +10,7 @@ const $sync=id=>document.getElementById(id);
 const label=(en,el)=>t(en,el);
 const status=(en,el)=>{$sync('sync-status').textContent=label(en,el)};
 const serial=()=>JSON.stringify(suppliers);
+const canonical=data=>JSON.stringify(data.map(normalise));
 const fields=['name','category','cost','due','remindDays','notes'];
 let previous=serial(),ready=false,networkBusy=false,loading=false,migrating=false,retry=null,queue=[],cloudCache=null;
 try{const saved=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]');if(Array.isArray(saved))queue=saved.filter(x=>Array.isArray(x)&&x.length)}catch{}
@@ -43,7 +44,7 @@ async function request(method,data){
  return body;
 }
 function applyCloud(data){
- if(serial()!==JSON.stringify(data)){
+ if(serial()!==canonical(data)){
    backup();
    suppliers=data.map(normalise);
    localStorage.setItem(KEY,serial());
@@ -57,7 +58,7 @@ function applyCloud(data){
 }
 function requiresChoice(data){
  if(!suppliers.length)return false;
- if(serial()===JSON.stringify(data))return false;
+ if(serial()===canonical(data))return false;
  if(!isLinked())return true;
  const lastSynced=localStorage.getItem(SHADOW_KEY);
  return lastSynced===null||serial()!==lastSynced;
