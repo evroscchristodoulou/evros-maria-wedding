@@ -1,4 +1,4 @@
-/* Evros & Maria — one public shared TEST budget. Legacy local budgets require a one-time choice. */
+/* Evros & Maria — public TEST budget, merges legacy device entries automatically. */
 (function(){
 'use strict';
 const API='https://evros-maria-wedding.evros-christodoulou1995.workers.dev/wedding/budget-shared';
@@ -13,7 +13,7 @@ const serial=()=>JSON.stringify(suppliers);
 const canonical=data=>JSON.stringify(data.map(normalise));
 const fields=['name','category','cost','due','remindDays','notes'];
 let previous=serial(),ready=false,networkBusy=false,loading=false,migrating=false,retry=null,queue=[],cloudCache=null;
-try{const saved=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]');if(Array.isArray(saved))queue=saved.filter(x=>Array.isArray(x)&&x.length)}catch{}
+try{const saved=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]');if(Array.isArray(saved))queue=saved.filter(x=>Array.isArray(x)&&x.length).flatMap(group=>group.flatMap(op=>op.type==='replace_all'&&Array.isArray(op.data)?op.data.map(expense=>({type:'add_expense',expense})): [op]).reduce((all,op)=>{if(!all.length||all[all.length-1].length>=25)all.push([]);all[all.length-1].push(op);return all},[]))}catch{}
 function saveQueue(){localStorage.setItem(QUEUE_KEY,JSON.stringify(queue))}
 function backup(){if(!localStorage.getItem(BACKUP_KEY))localStorage.setItem(BACKUP_KEY,serial())}
 function isLinked(){return localStorage.getItem(LINKED_KEY)==='1'}
@@ -56,22 +56,45 @@ function applyCloud(data){
  ready=true;
  setMode('online');
 }
-function requiresChoice(data){
- if(!suppliers.length)return false;
- if(serial()===canonical(data))return false;
- if(!isLinked())return true;
- const lastSynced=localStorage.getItem(SHADOW_KEY);
- return lastSynced===null||serial()!==lastSynced;
+
+function queueOperations(ops,first=false){
+ if(!ops.length)return;
+ const groups=[];
+ let current=[];
+ for(const op of ops){
+  if(current.length>=25||JSON.stringify({operations:[...current,op]}).length>95000){
+   if(current.length)groups.push(current);
+   current=[];
+  }
+  current.push(op);
+ }
+ if(current.length)groups.push(current);
+ if(first)queue=[...groups,...queue];
+ else queue.push(...groups);
+ saveQueue();
 }
-function showChoice(data){
- cloudCache=data;
- ready=false;
- setMode('migration');
- compare(data);
- status(
-   'Your website/app has saved numbers different from the shared budget. Choose which numbers everyone should use. Nothing will be deleted automatically.',
-   'Η ιστοσελίδα/εφαρμογή έχει διαφορετικά αποθηκευμένα ποσά από το κοινό σύστημα. Επιλέξτε ποια ποσά θα χρησιμοποιούν όλοι. Δεν διαγράφεται τίποτα αυτόματα.'
- );
+function queueLegacy(){
+ backup();
+ const local=JSON.parse(serial());
+ if(local.length){
+  queueOperations(local.map(expense=>({type:'add_expense',expense})),true);
+ }
+ localStorage.setItem(LINKED_KEY,'1');
+ ready=true;setMode('online');
+ status('Combining this device’s existing test entries with the shared cloud budget…','Συνένωση των παλαιών δοκιμαστικών εξόδων αυτής της συσκευής με τα κοινά έξοδα cloud…');
+ if(queue.length)drain();else refresh(false);
+}
+function queueUnsentLocalChanges(){
+ if(!isLinked()||queue.length)return false;
+ const previousCloud=localStorage.getItem(SHADOW_KEY);
+ if(previousCloud===null||serial()===previousCloud)return false;
+ try{
+  const ops=changes(JSON.parse(previousCloud),JSON.parse(serial()));
+  if(!ops.length)return false;
+  queueOperations(ops);
+  ready=true;drain();
+  return true;
+ }catch{return false}
 }
 function changes(oldData,newData,mode){
  if(mode==='replace')return [{type:'replace_all',data:newData}];
@@ -127,7 +150,8 @@ async function refresh(manual){
  try{
    const cloud=await request('GET');
    if(!Array.isArray(cloud.data))throw Error('Invalid shared budget');
-   if(requiresChoice(cloud.data)){showChoice(cloud.data);return}
+   if(!isLinked()&&suppliers.length&&serial()!==canonical(cloud.data)){queueLegacy();return}
+   if(queueUnsentLocalChanges())return;
    applyCloud(cloud.data);
    status(manual?'All devices now show the shared figures ✓':'Shared budget active · every device uses these same figures',manual?'Όλες οι συσκευές προβάλλουν τα κοινά ποσά ✓':'Τα κοινά έξοδα είναι ενεργά · όλες οι συσκευές βλέπουν τα ίδια ποσά');
  }catch(e){setMode('offline');status('Cloud unavailable; this device shows its saved figures.','Το cloud δεν είναι διαθέσιμο· εμφανίζονται τα τοπικά αποθηκευμένα ποσά.')}
@@ -145,10 +169,12 @@ async function start(){
      ready=true;setMode('online');status('Uploading queued changes…','Μεταφορά εκκρεμών αλλαγών…');
      loading=false;drain();return;
    }
-   if(queue.length&&!isLinked()){
-     showChoice(cloud.data);return;
+   if(!isLinked()&&suppliers.length&&serial()!==canonical(cloud.data)){queueLegacy();return}
+   if(queue.length){
+     localStorage.setItem(LINKED_KEY,'1');
+     ready=true;setMode('online');loading=false;drain();return;
    }
-   if(requiresChoice(cloud.data)){showChoice(cloud.data);return}
+   if(queueUnsentLocalChanges())return;
    applyCloud(cloud.data);
    status('Shared budget active · all devices use the same totals ✓','Κοινά έξοδα ενεργά · ίδια σύνολα σε όλες τις συσκευές ✓');
  }catch(e){
@@ -156,7 +182,7 @@ async function start(){
    status('Cannot reach Cloudflare. Local figures are preserved; press Refresh to retry.','Δεν υπάρχει σύνδεση στο Cloudflare. Τα τοπικά ποσά διατηρούνται· πατήστε Ανανέωση.');
  }finally{loading=false}
 }
-$sync('sync-refresh').onclick=()=>{if(migrating)start();else if(queue.length&&ready)drain();else if(ready)refresh(true);else start()};
+$sync('sync-refresh').onclick=()=>{if(queue.length&&ready)drain();else if(ready)refresh(true);else start()};
 $sync('sync-publish').onclick=async()=>{
  if(!migrating)return;
  const local=JSON.parse(serial());
@@ -185,6 +211,6 @@ $sync('sync-use-cloud').onclick=()=>{
 window.addEventListener('online',()=>{if(ready&&queue.length)drain();else if(ready)refresh(false);else start()});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(ready&&queue.length)drain();else if(ready)refresh(false);else start()}});
 window.addEventListener('storage',e=>{if(e.key===KEY&&!queue.length&&!networkBusy){try{suppliers=JSON.parse(e.newValue||'[]').map(normalise);previous=serial();render()}catch{}}});
-setInterval(()=>{if(document.hidden)return;if(ready&&queue.length)drain();else if(ready)refresh(false);else if(!migrating)start()},12000);
+setInterval(()=>{if(document.hidden)return;if(ready&&queue.length)drain();else if(ready)refresh(false);else start()},12000);
 start();
 })();
