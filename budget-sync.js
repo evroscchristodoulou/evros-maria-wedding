@@ -151,7 +151,7 @@ async function refresh(manual){
    const cloud=await request('GET');
    if(!Array.isArray(cloud.data))throw Error('Invalid shared budget');
    if(queue.length||networkBusy)return; // A local edit arrived while GET was pending.
-   if(!isLinked()&&suppliers.length&&serial()!==canonical(cloud.data)){queueLegacy();return}
+   if((!isLinked()||localStorage.getItem(SHADOW_KEY)===null)&&suppliers.length&&serial()!==canonical(cloud.data)){queueLegacy();return}
    if(queueUnsentLocalChanges())return;
    applyCloud(cloud.data);
    status(manual?'All devices now show the shared figures ✓':'Shared budget active · every device uses these same figures',manual?'Όλες οι συσκευές προβάλλουν τα κοινά ποσά ✓':'Τα κοινά έξοδα είναι ενεργά · όλες οι συσκευές βλέπουν τα ίδια ποσά');
@@ -170,7 +170,7 @@ async function start(){
      ready=true;setMode('online');status('Uploading queued changes…','Μεταφορά εκκρεμών αλλαγών…');
      loading=false;drain();return;
    }
-   if(!isLinked()&&suppliers.length&&serial()!==canonical(cloud.data)){queueLegacy();return}
+   if((!isLinked()||localStorage.getItem(SHADOW_KEY)===null)&&suppliers.length&&serial()!==canonical(cloud.data)){queueLegacy();return}
    if(queue.length){
      localStorage.setItem(LINKED_KEY,'1');
      ready=true;setMode('online');loading=false;drain();return;
