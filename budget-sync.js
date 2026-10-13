@@ -1,136 +1,188 @@
-/* Evros & Maria — one shared TEST budget for every visitor; no pairing, no password. */
+/* Evros & Maria — one public shared TEST budget. Legacy local budgets require a one-time choice. */
 (function(){
 'use strict';
 const API='https://evros-maria-wedding.evros-christodoulou1995.workers.dev/wedding/budget-shared';
 const QUEUE_KEY='em-budget-shared-queue-v1';
 const BACKUP_KEY='em-budget-before-shared-v1';
+const LINKED_KEY='em-budget-shared-connected-v1';
+const SHADOW_KEY='em-budget-shared-snapshot-v1';
 const $sync=id=>document.getElementById(id);
 const label=(en,el)=>t(en,el);
-const message=(en,el)=>{$sync('sync-status').textContent=label(en,el)};
+const status=(en,el)=>{$sync('sync-status').textContent=label(en,el)};
 const serial=()=>JSON.stringify(suppliers);
-let previous=serial(),ready=false,networkBusy=false,loading=false,queue=[],retry=null;
-try{const v=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]');if(Array.isArray(v))queue=v.filter(g=>Array.isArray(g)&&g.length)}catch{}
+const fields=['name','category','cost','due','remindDays','notes'];
+let previous=serial(),ready=false,networkBusy=false,loading=false,migrating=false,retry=null,queue=[],cloudCache=null;
+try{const saved=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]');if(Array.isArray(saved))queue=saved.filter(x=>Array.isArray(x)&&x.length)}catch{}
 function saveQueue(){localStorage.setItem(QUEUE_KEY,JSON.stringify(queue))}
-function localBackup(){if(!localStorage.getItem(BACKUP_KEY))localStorage.setItem(BACKUP_KEY,previous)}
-function setUI(mode){
-  $sync('sync-badge').textContent=mode==='connected'?label('Shared · Online','Κοινό · Online'):mode==='offline'?label('Offline · Local','Εκτός · Τοπικό'):label('Test budget','Δοκιμαστικό');
-  $sync('sync-publish').hidden=mode!=='migration';
-  $sync('sync-use-cloud').hidden=mode!=='migration';
+function backup(){if(!localStorage.getItem(BACKUP_KEY))localStorage.setItem(BACKUP_KEY,serial())}
+function isLinked(){return localStorage.getItem(LINKED_KEY)==='1'}
+function setMode(mode){
+ $sync('sync-badge').textContent=mode==='online'?label('Synced ✓','Συγχρονισμένο ✓'):mode==='offline'?label('Offline','Εκτός σύνδεσης'):mode==='migration'?label('Two versions','Δύο εκδόσεις'):label('Loading…','Φόρτωση…');
+ migrating=mode==='migration';
+ $sync('sync-publish').hidden=!migrating;
+ $sync('sync-use-cloud').hidden=!migrating;
+ $sync('sync-comparison').hidden=!migrating;
+}
+function totals(data){
+ let cost=0,paid=0;
+ for(const item of data){cost+=Number(item.cost)||0;paid+=(item.payments||[]).reduce((sum,p)=>sum+(Number(p.amount)||0),0)}
+ return {cost,paid,remaining:cost-paid};
+}
+function euro(n){return '€'+Number(n||0).toLocaleString('en-CY',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function compare(cloud){
+ const a=totals(suppliers),b=totals(cloud);
+ $sync('sync-comparison').textContent=label(
+   'THIS device: '+euro(a.cost)+' total · '+euro(a.paid)+' paid · '+euro(a.remaining)+' remaining. SHARED cloud: '+euro(b.cost)+' total · '+euro(b.paid)+' paid · '+euro(b.remaining)+' remaining.',
+   'ΑΥΤΗ η συσκευή: '+euro(a.cost)+' σύνολο · '+euro(a.paid)+' πληρωμένα · '+euro(a.remaining)+' υπόλοιπο. ΚΟΙΝΟ cloud: '+euro(b.cost)+' σύνολο · '+euro(b.paid)+' πληρωμένα · '+euro(b.remaining)+' υπόλοιπο.'
+ );
 }
 async function request(method,data){
-  const response=await fetch(API,{method,cache:'no-store',headers:method==='POST'?{'Content-Type':'application/json'}:{},body:method==='POST'?JSON.stringify(data):undefined});
-  let body;try{body=await response.json()}catch{body={}}
-  if(!response.ok)throw Error(body.error||'Cloudflare error '+response.status);
-  return body;
+ const response=await fetch(API,{method,cache:'no-store',headers:method==='POST'?{'Content-Type':'application/json'}:{},body:method==='POST'?JSON.stringify(data):undefined});
+ let body;try{body=await response.json()}catch{body={}}
+ if(!response.ok)throw Error(body.error||'Cloudflare error '+response.status);
+ return body;
 }
 function applyCloud(data){
-  const remote=JSON.stringify(data);
-  if(serial()!==remote){
-    localBackup();
-    suppliers=data.map(normalise);
-    localStorage.setItem(KEY,JSON.stringify(suppliers));
-    render();
-  }
-  previous=serial();
+ if(serial()!==JSON.stringify(data)){
+   backup();
+   suppliers=data.map(normalise);
+   localStorage.setItem(KEY,serial());
+   render();
+ }
+ previous=serial();
+ localStorage.setItem(SHADOW_KEY,previous);
+ localStorage.setItem(LINKED_KEY,'1');
+ ready=true;
+ setMode('online');
 }
-const fields=['name','category','cost','due','remindDays','notes'];
+function requiresChoice(data){
+ if(!suppliers.length)return false;
+ if(serial()===JSON.stringify(data))return false;
+ if(!isLinked())return true;
+ const lastSynced=localStorage.getItem(SHADOW_KEY);
+ return lastSynced===null||serial()!==lastSynced;
+}
+function showChoice(data){
+ cloudCache=data;
+ ready=false;
+ setMode('migration');
+ compare(data);
+ status(
+   'Your website/app has saved numbers different from the shared budget. Choose which numbers everyone should use. Nothing will be deleted automatically.',
+   'Η ιστοσελίδα/εφαρμογή έχει διαφορετικά αποθηκευμένα ποσά από το κοινό σύστημα. Επιλέξτε ποια ποσά θα χρησιμοποιούν όλοι. Δεν διαγράφεται τίποτα αυτόματα.'
+ );
+}
 function changes(oldData,newData,mode){
-  if(mode==='replace')return [{type:'replace_all',data:newData}];
-  const oldMap=new Map(oldData.map(x=>[x.id,x])),newMap=new Map(newData.map(x=>[x.id,x])),ops=[];
-  for(const before of oldData)if(!newMap.has(before.id))ops.push({type:'delete_expense',id:before.id});
-  for(const after of newData){
-    const before=oldMap.get(after.id);
-    if(!before){ops.push({type:'add_expense',expense:after});continue}
-    const changed={};for(const f of fields)if(after[f]!==before[f])changed[f]=after[f];
-    if(Object.keys(changed).length)ops.push({type:'update_expense',id:after.id,fields:changed});
-    const oldPayments=new Map((before.payments||[]).map(p=>[p.id,p]));
-    const newPayments=new Map((after.payments||[]).map(p=>[p.id,p]));
-    for(const p of before.payments||[])if(!newPayments.has(p.id))ops.push({type:'delete_payment',id:p.id});
-    for(const p of after.payments||[])if(!oldPayments.has(p.id))ops.push({type:'add_payment',expenseId:after.id,payment:p});
-  }
-  return ops;
+ if(mode==='replace')return [{type:'replace_all',data:newData}];
+ const a=new Map(oldData.map(x=>[x.id,x])),b=new Map(newData.map(x=>[x.id,x])),ops=[];
+ for(const old of oldData)if(!b.has(old.id))ops.push({type:'delete_expense',id:old.id});
+ for(const next of newData){
+   const old=a.get(next.id);
+   if(!old){ops.push({type:'add_expense',expense:next});continue}
+   const delta={};
+   for(const field of fields)if(old[field]!==next[field])delta[field]=next[field];
+   if(Object.keys(delta).length)ops.push({type:'update_expense',id:next.id,fields:delta});
+   const oldPayments=new Map((old.payments||[]).map(p=>[p.id,p]));
+   const nextPayments=new Map((next.payments||[]).map(p=>[p.id,p]));
+   for(const p of old.payments||[])if(!nextPayments.has(p.id))ops.push({type:'delete_payment',id:p.id});
+   for(const p of next.payments||[])if(!oldPayments.has(p.id))ops.push({type:'add_payment',expenseId:next.id,payment:p});
+ }
+ return ops;
 }
 window.addEventListener('em-budget-local-change',event=>{
-  let oldData;try{oldData=JSON.parse(previous)}catch{oldData=[]}
-  const next=serial();
-  if(next===previous)return;
-  let nextData;try{nextData=JSON.parse(next)}catch{return}
-  const ops=changes(oldData,nextData,event.detail?.mode);
-  previous=next;
-  if(!ops.length)return;
-  queue.push(ops);saveQueue();
-  message('Saving shared budget…','Αποθήκευση κοινών εξόδων…');
-  if(ready)drain();
+ let before;try{before=JSON.parse(previous)}catch{before=[]}
+ const next=serial();if(next===previous)return;
+ let after;try{after=JSON.parse(next)}catch{return}
+ const ops=changes(before,after,event.detail?.mode);
+ previous=next;
+ if(!ops.length)return;
+ queue.push(ops);saveQueue();
+ status('Saving your change to the shared budget…','Αποθήκευση της αλλαγής στο κοινό σύστημα…');
+ if(ready)drain();
 });
 async function drain(){
-  if(networkBusy||!ready||!queue.length)return;
-  networkBusy=true;
-  try{
-    while(ready&&queue.length){
-      const group=queue[0];
-      await request('POST',{operations:group});
-      queue.shift();saveQueue();
-    }
-    message('Saved for all devices ✓','Αποθηκεύτηκε για όλες τις συσκευές ✓');
-  }catch(e){
-    setUI('offline');
-    message('Not yet synced (your changes remain here): '+e.message,'Δεν συγχρονίστηκε ακόμη (οι αλλαγές είναι εδώ): '+e.message);
-  }finally{
-    networkBusy=false;
-    if(queue.length){clearTimeout(retry);retry=setTimeout(drain,10000)}
-    else if(ready)refresh(false);
-  }
+ if(networkBusy||!ready||!queue.length)return;
+ networkBusy=true;
+ try{
+   while(ready&&queue.length){
+     await request('POST',{operations:queue[0]});
+     queue.shift();saveQueue();
+   }
+   status('Saved — totals will match across all devices ✓','Αποθηκεύτηκε — τα σύνολα θα ταιριάζουν σε όλες τις συσκευές ✓');
+   setMode('online');
+ }catch(e){
+   setMode('offline');
+   status('Not yet saved to the shared budget. Your local changes are kept: '+e.message,'Δεν αποθηκεύτηκε ακόμη στο κοινό σύστημα. Οι τοπικές αλλαγές κρατήθηκαν: '+e.message);
+ }finally{
+   networkBusy=false;
+   if(queue.length){clearTimeout(retry);retry=setTimeout(drain,10000)}
+   else if(ready)refresh(false);
+ }
 }
 async function refresh(manual){
-  if(loading||networkBusy||queue.length)return;
-  loading=true;
-  try{
-    const result=await request('GET');
-    if(!Array.isArray(result.data))throw Error('Invalid shared budget');
-    applyCloud(result.data);
-    ready=true;setUI('connected');
-    if(manual)message('Everything is up to date ✓','Όλα είναι ενημερωμένα ✓');
-    else message('Shared budget active · all devices see these figures','Κοινά έξοδα ενεργά · όλες οι συσκευές βλέπουν τα ίδια ποσά');
-  }catch(e){
-    setUI('offline');
-    message('Cloud unavailable; showing last saved figures.','Cloud μη διαθέσιμο· προβάλλονται τα τελευταία αποθηκευμένα ποσά.');
-  }finally{loading=false}
+ if(loading||networkBusy||queue.length||migrating)return;
+ loading=true;
+ try{
+   const cloud=await request('GET');
+   if(!Array.isArray(cloud.data))throw Error('Invalid shared budget');
+   if(requiresChoice(cloud.data)){showChoice(cloud.data);return}
+   applyCloud(cloud.data);
+   status(manual?'All devices now show the shared figures ✓':'Shared budget active · every device uses these same figures',manual?'Όλες οι συσκευές προβάλλουν τα κοινά ποσά ✓':'Τα κοινά έξοδα είναι ενεργά · όλες οι συσκευές βλέπουν τα ίδια ποσά');
+ }catch(e){setMode('offline');status('Cloud unavailable; this device shows its saved figures.','Το cloud δεν είναι διαθέσιμο· εμφανίζονται τα τοπικά αποθηκευμένα ποσά.')}
+ finally{loading=false}
 }
 async function start(){
-  setUI('loading');
-  message('Loading the shared budget…','Φόρτωση κοινών εξόδων…');
-  try{
-    const result=await request('GET');
-    if(!Array.isArray(result.data))throw Error('Invalid shared budget');
-    if(queue.length){
-      ready=true;setUI('connected');
-      message('Uploading changes saved on this device…','Μεταφορά αλλαγών αυτής της συσκευής…');
-      drain();return;
-    }
-    if(result.data.length===0&&suppliers.length>0){
-      ready=false;setUI('migration');
-      message('Older test entries exist on this device. Publish them to the empty shared budget, or switch to the empty shared budget.','Υπάρχουν παλαιότερα δοκιμαστικά έξοδα στη συσκευή. Δημοσιεύστε τα στο κοινό σύστημα ή επιλέξτε τα κενά κοινά έξοδα.');
-      return;
-    }
-    applyCloud(result.data);ready=true;setUI('connected');
-    message('Shared budget active · no pairing needed ✓','Κοινά έξοδα ενεργά · χωρίς σύνδεσμο ✓');
-  }catch(e){
-    ready=false;setUI('offline');
-    message('Cannot load shared budget. Local figures remain safe; try Refresh.','Δεν φορτώθηκαν τα κοινά έξοδα. Τα τοπικά δεδομένα διατηρούνται· πατήστε Ανανέωση.');
-  }
+ if(loading||networkBusy)return;
+ loading=true;
+ setMode('loading');
+ status('Checking the shared budget…','Έλεγχος κοινών εξόδων…');
+ try{
+   const cloud=await request('GET');
+   if(!Array.isArray(cloud.data))throw Error('Invalid shared budget');
+   if(queue.length&&isLinked()){
+     ready=true;setMode('online');status('Uploading queued changes…','Μεταφορά εκκρεμών αλλαγών…');
+     loading=false;drain();return;
+   }
+   if(queue.length&&!isLinked()){
+     showChoice(cloud.data);return;
+   }
+   if(requiresChoice(cloud.data)){showChoice(cloud.data);return}
+   applyCloud(cloud.data);
+   status('Shared budget active · all devices use the same totals ✓','Κοινά έξοδα ενεργά · ίδια σύνολα σε όλες τις συσκευές ✓');
+ }catch(e){
+   ready=false;setMode('offline');
+   status('Cannot reach Cloudflare. Local figures are preserved; press Refresh to retry.','Δεν υπάρχει σύνδεση στο Cloudflare. Τα τοπικά ποσά διατηρούνται· πατήστε Ανανέωση.');
+ }finally{loading=false}
 }
-$sync('sync-refresh').onclick=()=>{if(queue.length)drain();else if(!ready)start();else refresh(true)};
+$sync('sync-refresh').onclick=()=>{if(migrating)start();else if(queue.length&&ready)drain();else if(ready)refresh(true);else start()};
 $sync('sync-publish').onclick=async()=>{
-  if(!confirm(label('Publish all sample expenses saved on this device as the shared test budget? Every visitor will see them.','Να δημοσιευτούν όλα τα δοκιμαστικά έξοδα αυτής της συσκευής στο κοινό σύστημα; Θα τα βλέπει κάθε επισκέπτης.')))return;
-  ready=true;setUI('connected');queue.push([{type:'replace_all',data:JSON.parse(serial())}]);saveQueue();drain();
+ if(!migrating)return;
+ const local=JSON.parse(serial());
+ if(!confirm(label(
+   'Make THIS DEVICE the source for EVERYONE? Its '+euro(totals(local).cost)+' total will replace the shared cloud test figures. If the app has more accurate figures, open the app and choose this option there instead.',
+   'Να γίνουν τα ποσά ΑΥΤΗΣ ΤΗΣ ΣΥΣΚΕΥΗΣ κοινά για ΟΛΟΥΣ; Το σύνολο '+euro(totals(local).cost)+' θα αντικαταστήσει τα κοινά δοκιμαστικά ποσά. Αν η εφαρμογή έχει τα σωστά ποσά, επιλέξτε αυτή την ενέργεια από την εφαρμογή.'
+  )))return;
+ backup();
+ queue=[[{type:'replace_all',data:local}]];saveQueue();
+ localStorage.setItem(LINKED_KEY,'1');
+ localStorage.setItem(SHADOW_KEY,serial());
+ ready=true;setMode('online');
+ status('Publishing this device’s figures to all devices…','Δημοσίευση των ποσών αυτής της συσκευής σε όλες τις συσκευές…');
+ drain();
 };
 $sync('sync-use-cloud').onclick=()=>{
-  if(!confirm(label('Keep a backup of older local entries and show the shared budget instead?','Να κρατηθεί αντίγραφο των παλαιών τοπικών εξόδων και να εμφανιστεί το κοινό σύστημα;')))return;
-  localBackup();suppliers=[];localStorage.setItem(KEY,'[]');previous='[]';render();ready=true;setUI('connected');message('Shared test budget ready ✓','Τα κοινά δοκιμαστικά έξοδα είναι έτοιμα ✓');
+ if(!migrating||!cloudCache)return;
+ const remote=totals(cloudCache);
+ if(!confirm(label(
+   'Show SHARED numbers on this device ('+euro(remote.cost)+' total)? A backup of this device’s old entries will be kept in your browser.',
+   'Να εμφανιστούν τα ΚΟΙΝΑ ποσά σε αυτή τη συσκευή (σύνολο '+euro(remote.cost)+'); Θα διατηρηθεί αντίγραφο των προηγούμενων τοπικών στοιχείων.'
+  )))return;
+ backup();queue=[];saveQueue();applyCloud(cloudCache);
+ status('This device now uses the shared figures ✓','Αυτή η συσκευή χρησιμοποιεί πλέον τα κοινά ποσά ✓');
 };
-window.addEventListener('online',()=>{if(queue.length&&ready)drain();else if(ready)refresh(false);else start()});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(queue.length&&ready)drain();else if(ready)refresh(false);else start()}});
+window.addEventListener('online',()=>{if(ready&&queue.length)drain();else if(ready)refresh(false);else start()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(ready&&queue.length)drain();else if(ready)refresh(false);else start()}});
 window.addEventListener('storage',e=>{if(e.key===KEY&&!queue.length&&!networkBusy){try{suppliers=JSON.parse(e.newValue||'[]').map(normalise);previous=serial();render()}catch{}}});
-setInterval(()=>{if(document.hidden)return;if(queue.length&&ready)drain();else if(ready)refresh(false);else start()},12000);
+setInterval(()=>{if(document.hidden)return;if(ready&&queue.length)drain();else if(ready)refresh(false);else if(!migrating)start()},12000);
 start();
 })();
