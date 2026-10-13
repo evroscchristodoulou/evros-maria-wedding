@@ -31,6 +31,72 @@ export default {
         await env.SUBSCRIBERS.put(storageKey,JSON.stringify({data:input.data,revision,updatedAt}));
         return json({ok:true,revision,updatedAt});
       }
+
+      // PUBLIC TEST MODE ONLY. All visitors share one sample budget; never store actual private finances here.
+      if(url.pathname==='/wedding/budget-shared' && (request.method==='GET'||request.method==='POST')){
+        if(!env.BUDGET_DB)return json({error:'Shared test budget database unavailable'},503);
+        const db=env.BUDGET_DB;
+        if(request.method==='GET'){
+          const [e,p]=await Promise.all([
+            db.prepare('SELECT id,name,category,cost,due,remindDays,notes FROM expenses ORDER BY rowid').all(),
+            db.prepare('SELECT id,expense_id,amount,date,note FROM payments ORDER BY rowid').all()
+          ]);
+          const data=(e.results||[]).map(x=>({...x,remindDays:Number(x.remindDays)||3,payments:[]}));
+          const byId=new Map(data.map(x=>[x.id,x]));
+          for(const pay of p.results||[]){const entry=byId.get(pay.expense_id);if(entry)entry.payments.push({id:pay.id,amount:pay.amount,date:pay.date,note:pay.note})}
+          return json({data,testMode:true});
+        }
+        const raw=await request.text();
+        if(raw.length>120000)return json({error:'Request too large'},413);
+        let body;try{body=JSON.parse(raw)}catch{return json({error:'Invalid JSON'},400)}
+        const ops=body?.operations;
+        if(!Array.isArray(ops)||ops.length<1||ops.length>150)return json({error:'Invalid operations'},400);
+        const idOK=x=>typeof x==='string'&&x.length>0&&x.length<=90;
+        const dateOK=x=>typeof x==='string'&&(x===''||/^\d{4}-\d{2}-\d{2}$/.test(x));
+        const expenseOK=x=>x&&idOK(x.id)&&typeof x.name==='string'&&x.name.trim().length>0&&x.name.length<=100&&typeof x.category==='string'&&x.category.length<=60&&Number.isFinite(x.cost)&&x.cost>=0&&x.cost<=100000000&&dateOK(x.due)&&Number.isInteger(Number(x.remindDays))&&Number(x.remindDays)>=0&&Number(x.remindDays)<=30&&typeof x.notes==='string'&&x.notes.length<=300&&Array.isArray(x.payments)&&x.payments.length<=250&&x.payments.every(paymentOK);
+        function paymentOK(x){return x&&idOK(x.id)&&Number.isFinite(x.amount)&&x.amount>0&&x.amount<=100000000&&dateOK(x.date)&&typeof x.note==='string'&&x.note.length<=180}
+        const statements=[];
+        const addExpense=(e)=>{
+          statements.push(db.prepare('INSERT OR IGNORE INTO expenses(id,name,category,cost,due,remindDays,notes) VALUES(?,?,?,?,?,?,?)').bind(e.id,e.name,e.category,e.cost,e.due,e.remindDays,e.notes));
+          for(const p of e.payments)statements.push(db.prepare('INSERT OR IGNORE INTO payments(id,expense_id,amount,date,note) VALUES(?,?,?,?,?)').bind(p.id,e.id,p.amount,p.date,p.note));
+        };
+        for(const op of ops){
+          if(!op||typeof op.type!=='string')return json({error:'Invalid operation'},400);
+          if(op.type==='add_expense'){
+            if(!expenseOK(op.expense))return json({error:'Invalid expense'},400);
+            addExpense(op.expense);
+          }else if(op.type==='update_expense'){
+            if(!idOK(op.id)||!op.fields||typeof op.fields!=='object'||Array.isArray(op.fields))return json({error:'Invalid update'},400);
+            const keys=Object.keys(op.fields);
+            const allowed=['name','category','cost','due','remindDays','notes'];
+            if(keys.length===0||keys.length>allowed.length||keys.some(k=>!allowed.includes(k)))return json({error:'Invalid fields'},400);
+            const merged={id:op.id,name:'Placeholder',category:'Other',cost:0,due:'',remindDays:3,notes:'',payments:[],...op.fields};
+            if(!expenseOK(merged))return json({error:'Invalid expense changes'},400);
+            statements.push(db.prepare('UPDATE expenses SET '+keys.map(k=>k+'=?').join(',')+' WHERE id=?').bind(...keys.map(k=>op.fields[k]),op.id));
+          }else if(op.type==='add_payment'){
+            if(!idOK(op.expenseId)||!paymentOK(op.payment))return json({error:'Invalid payment'},400);
+            const p=op.payment;
+            statements.push(db.prepare('INSERT OR IGNORE INTO payments(id,expense_id,amount,date,note) VALUES(?,?,?,?,?)').bind(p.id,op.expenseId,p.amount,p.date,p.note));
+          }else if(op.type==='delete_payment'){
+            if(!idOK(op.id))return json({error:'Invalid payment ID'},400);
+            statements.push(db.prepare('DELETE FROM payments WHERE id=?').bind(op.id));
+          }else if(op.type==='delete_expense'){
+            if(!idOK(op.id))return json({error:'Invalid expense ID'},400);
+            statements.push(db.prepare('DELETE FROM payments WHERE expense_id=?').bind(op.id));
+            statements.push(db.prepare('DELETE FROM expenses WHERE id=?').bind(op.id));
+          }else if(op.type==='replace_all'){
+            if(ops.length!==1||!Array.isArray(op.data)||op.data.length>200||!op.data.every(expenseOK))return json({error:'Invalid replacement data'},400);
+            statements.push(db.prepare('DELETE FROM payments'));
+            statements.push(db.prepare('DELETE FROM expenses'));
+            for(const e of op.data)addExpense(e);
+          }else return json({error:'Unknown operation'},400);
+          if(statements.length>1000)return json({error:'Too many database updates'},413);
+        }
+        try{
+          await db.batch(statements);
+          return json({ok:true,operations:ops.length});
+        }catch(e){return json({error:'Could not save budget changes'},503)}
+      }
       // Financial data and checklist must not be exposed via unauthenticated public APIs.
       if(url.pathname==='/wedding/private-data'){
         if(!admin)return json({error:'Administrator authentication required'},401);
