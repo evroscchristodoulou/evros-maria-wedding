@@ -1,149 +1,136 @@
-/* Evros & Maria — test-only cross-device budget sync. The pairing key stays in local storage. */
+/* Evros & Maria — one shared TEST budget for every visitor; no pairing, no password. */
 (function(){
 'use strict';
-const API='https://evros-maria-wedding.evros-christodoulou1995.workers.dev/wedding/budget-sync';
-const TOKEN_KEY='em-budget-sync-key-v1';
-const SHADOW_KEY='em-budget-sync-shadow-v1';
-const DATA_KEY='em-suppliers-v1';
-const VERSION_KEY='em-budget-sync-revision-v1',TIME_KEY='em-budget-sync-time-v1';
-function storeVersion(rev,time){if(rev)localStorage.setItem(VERSION_KEY,rev);if(time)localStorage.setItem(TIME_KEY,time)}
+const API='https://evros-maria-wedding.evros-christodoulou1995.workers.dev/wedding/budget-shared';
+const QUEUE_KEY='em-budget-shared-queue-v1';
+const BACKUP_KEY='em-budget-before-shared-v1';
 const $sync=id=>document.getElementById(id);
-let token=localStorage.getItem(TOKEN_KEY)||'';
-let revision=null, ready=false, writing=false, dirty=false, conflict=false, timer=null, pollBusy=false;
 const label=(en,el)=>t(en,el);
-function status(en,el){$sync('sync-status').textContent=label(en,el)}
-function setControls(){const linked=!!token;$sync('sync-start').hidden=linked;$sync('sync-pair').hidden=linked;$sync('sync-share').hidden=!linked;$sync('sync-refresh').hidden=!linked;$sync('sync-stop').hidden=!linked;$sync('sync-badge').textContent=linked?label('Paired','Συνδεδεμένο'):label('Not connected','Χωρίς σύνδεση')}
-function snapshot(){return JSON.stringify(suppliers)}
-function shadow(){return localStorage.getItem(SHADOW_KEY)}
-function setShadow(data){localStorage.setItem(SHADOW_KEY,JSON.stringify(data))}
-function install(data){suppliers=data.map(normalise);localStorage.setItem(DATA_KEY,JSON.stringify(suppliers));setShadow(suppliers);render()}
-async function request(key,method,payload){
-  const response=await fetch(API,{method,headers:{'X-Wedding-Sync-Key':key,...(method==='POST'?{'Content-Type':'application/json'}:{})},body:method==='POST'?JSON.stringify(payload):undefined,cache:'no-store'});
-  let result;try{result=await response.json()}catch{result={}}
-  if(!response.ok){const err=new Error(result.error||('Cloudflare error '+response.status));err.code=response.status;throw err}
-  return result;
+const message=(en,el)=>{$sync('sync-status').textContent=label(en,el)};
+const serial=()=>JSON.stringify(suppliers);
+let previous=serial(),ready=false,networkBusy=false,loading=false,queue=[],retry=null;
+try{const v=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]');if(Array.isArray(v))queue=v.filter(g=>Array.isArray(g)&&g.length)}catch{}
+function saveQueue(){localStorage.setItem(QUEUE_KEY,JSON.stringify(queue))}
+function localBackup(){if(!localStorage.getItem(BACKUP_KEY))localStorage.setItem(BACKUP_KEY,previous)}
+function setUI(mode){
+  $sync('sync-badge').textContent=mode==='connected'?label('Shared · Online','Κοινό · Online'):mode==='offline'?label('Offline · Local','Εκτός · Τοπικό'):label('Test budget','Δοκιμαστικό');
+  $sync('sync-publish').hidden=mode!=='migration';
+  $sync('sync-use-cloud').hidden=mode!=='migration';
 }
-function validKey(s){return /^[0-9a-f]{64}$/.test(s)}
-function keyFromInput(s){try{const u=new URL(s);s=u.hash.replace(/^#(?:sync|budget-sync)=/,'')}catch{}return s.trim().toLowerCase()}
-function newKey(){const bytes=crypto.getRandomValues(new Uint8Array(32));return Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('')}
-function connectState(key,rev,time){token=key;revision=rev;ready=true;dirty=false;conflict=false;localStorage.setItem(TOKEN_KEY,key);storeVersion(rev,time);setControls()}
-async function connect(key,create){
-  if(!validKey(key))return status('Invalid pairing code.','Μη έγκυρος κωδικός σύνδεσης.');
-  ready=false;status('Connecting to Cloudflare…','Σύνδεση στο Cloudflare…');
+async function request(method,data){
+  const response=await fetch(API,{method,cache:'no-store',headers:method==='POST'?{'Content-Type':'application/json'}:{},body:method==='POST'?JSON.stringify(data):undefined});
+  let body;try{body=await response.json()}catch{body={}}
+  if(!response.ok)throw Error(body.error||'Cloudflare error '+response.status);
+  return body;
+}
+function applyCloud(data){
+  const remote=JSON.stringify(data);
+  if(serial()!==remote){
+    localBackup();
+    suppliers=data.map(normalise);
+    localStorage.setItem(KEY,JSON.stringify(suppliers));
+    render();
+  }
+  previous=serial();
+}
+const fields=['name','category','cost','due','remindDays','notes'];
+function changes(oldData,newData,mode){
+  if(mode==='replace')return [{type:'replace_all',data:newData}];
+  const oldMap=new Map(oldData.map(x=>[x.id,x])),newMap=new Map(newData.map(x=>[x.id,x])),ops=[];
+  for(const before of oldData)if(!newMap.has(before.id))ops.push({type:'delete_expense',id:before.id});
+  for(const after of newData){
+    const before=oldMap.get(after.id);
+    if(!before){ops.push({type:'add_expense',expense:after});continue}
+    const changed={};for(const f of fields)if(after[f]!==before[f])changed[f]=after[f];
+    if(Object.keys(changed).length)ops.push({type:'update_expense',id:after.id,fields:changed});
+    const oldPayments=new Map((before.payments||[]).map(p=>[p.id,p]));
+    const newPayments=new Map((after.payments||[]).map(p=>[p.id,p]));
+    for(const p of before.payments||[])if(!newPayments.has(p.id))ops.push({type:'delete_payment',id:p.id});
+    for(const p of after.payments||[])if(!oldPayments.has(p.id))ops.push({type:'add_payment',expenseId:after.id,payment:p});
+  }
+  return ops;
+}
+window.addEventListener('em-budget-local-change',event=>{
+  let oldData;try{oldData=JSON.parse(previous)}catch{oldData=[]}
+  const next=serial();
+  if(next===previous)return;
+  let nextData;try{nextData=JSON.parse(next)}catch{return}
+  const ops=changes(oldData,nextData,event.detail?.mode);
+  previous=next;
+  if(!ops.length)return;
+  queue.push(ops);saveQueue();
+  message('Saving shared budget…','Αποθήκευση κοινών εξόδων…');
+  if(ready)drain();
+});
+async function drain(){
+  if(networkBusy||!ready||!queue.length)return;
+  networkBusy=true;
   try{
-    const cloud=await request(key,'GET');
-    if(create){
-      if(cloud.exists)throw Error('Pairing code already exists.');
-      const data=JSON.parse(snapshot());
-      const written=await request(key,'POST',{data,revision:null});
-      setShadow(data);connectState(key,written.revision,written.updatedAt);
-      status('Synced! Copy the pairing link to your other device.','Συγχρονίστηκε! Αντιγράψτε τον σύνδεσμο στην άλλη συσκευή.');
-      return;
+    while(ready&&queue.length){
+      const group=queue[0];
+      await request('POST',{operations:group});
+      queue.shift();saveQueue();
     }
-    if(!cloud.exists){status('No cloud budget found for that code. Start sync on your first device and try again.','Δεν βρέθηκαν έξοδα cloud. Ξεκινήστε τον συγχρονισμό στην πρώτη συσκευή.');return}
-    if(!Array.isArray(cloud.data))throw Error('Invalid cloud data');
-    if(snapshot()!==JSON.stringify(cloud.data)&&suppliers.length){
-      if(!confirm(label('This device already has different budget entries. Download a backup first if you want to keep them. Replace them with the paired cloud budget?','Αυτή η συσκευή έχει διαφορετικά έξοδα. Κατεβάστε αντίγραφο αν θέλετε να τα κρατήσετε. Αντικατάσταση με τα έξοδα cloud;'))){
-        status('Pairing cancelled; local data kept.','Ακύρωση σύνδεσης· τα τοπικά στοιχεία διατηρήθηκαν.');return
-      }
-    }
-    install(cloud.data);connectState(key,cloud.revision,cloud.updatedAt);
-    status('Connected — changes sync automatically.','Συνδέθηκε — οι αλλαγές συγχρονίζονται αυτόματα.');
-  }catch(e){ready=false;status('Could not connect: '+e.message,'Αποτυχία σύνδεσης: '+e.message)}
-}
-function onChange(){
-  if(!ready||!token||conflict)return;
-  dirty=true;status('Saving to Cloudflare…','Αποθήκευση στο Cloudflare…');
-  clearTimeout(timer);timer=setTimeout(persist,650);
-}
-async function persist(){
-  if(!ready||!token||writing||conflict||!dirty)return;
-  writing=true;
-  try{
-    while(dirty&&ready&&!conflict){
-      dirty=false;
-      const data=JSON.parse(snapshot());
-      const result=await request(token,'POST',{data,revision});
-      revision=result.revision;setShadow(data);storeVersion(result.revision,result.updatedAt);
-      status('Saved to Cloudflare ✓','Αποθηκεύτηκε στο Cloudflare ✓');
-    }
+    message('Saved for all devices ✓','Αποθηκεύτηκε για όλες τις συσκευές ✓');
   }catch(e){
-    dirty=true;
-    if(e.code===409){conflict=true;status('Another device updated this budget. Export a backup, then choose Refresh to review the cloud version.','Άλλη συσκευή άλλαξε τα έξοδα. Εξαγάγετε αντίγραφο και πατήστε Ανανέωση για τα στοιχεία cloud.')}
-    else status('Not synced (changes kept here): '+e.message,'Δεν συγχρονίστηκε (τα στοιχεία κρατήθηκαν εδώ): '+e.message);
-  }finally{writing=false}
+    setUI('offline');
+    message('Not yet synced (your changes remain here): '+e.message,'Δεν συγχρονίστηκε ακόμη (οι αλλαγές είναι εδώ): '+e.message);
+  }finally{
+    networkBusy=false;
+    if(queue.length){clearTimeout(retry);retry=setTimeout(drain,10000)}
+    else if(ready)refresh(false);
+  }
 }
 async function refresh(manual){
-  if(!ready||!token||pollBusy||writing)return;
-  pollBusy=true;
+  if(loading||networkBusy||queue.length)return;
+  loading=true;
   try{
-    const cloud=await request(token,'GET');
-    if(!cloud.exists||!Array.isArray(cloud.data))throw Error('Cloud budget unavailable');
-    if(cloud.updatedAt&&localStorage.getItem(TIME_KEY)&&cloud.updatedAt<localStorage.getItem(TIME_KEY))return;
-    if(cloud.revision!==revision){
-      const hasUnsynced=dirty||snapshot()!==shadow();
-      if(hasUnsynced){
-        conflict=true;
-        if(manual&&confirm(label('This device has changes that have not been uploaded. Replace them with the cloud budget?','Υπάρχουν μη αποθηκευμένες αλλαγές. Αντικατάσταση με τα έξοδα cloud;'))){
-          install(cloud.data);revision=cloud.revision;storeVersion(cloud.revision,cloud.updatedAt);dirty=false;conflict=false;status('Downloaded latest cloud budget.','Λήφθηκαν τα τελευταία έξοδα cloud.');
-        }else status('Cloud version changed; your local changes were kept. Export a backup, then Refresh to resolve.','Το cloud άλλαξε· οι τοπικές αλλαγές διατηρήθηκαν. Κρατήστε αντίγραφο και πατήστε Ανανέωση.');
-      }else{
-        install(cloud.data);revision=cloud.revision;storeVersion(cloud.revision,cloud.updatedAt);conflict=false;
-        status('Updated from another device ✓','Ενημερώθηκε από άλλη συσκευή ✓');
-      }
-    }else if(manual)status('Already up to date ✓','Όλα ενημερωμένα ✓');
-  }catch(e){if(manual)status('Refresh failed: '+e.message,'Αποτυχία ανανέωσης: '+e.message)}
-  finally{pollBusy=false}
+    const result=await request('GET');
+    if(!Array.isArray(result.data))throw Error('Invalid shared budget');
+    applyCloud(result.data);
+    ready=true;setUI('connected');
+    if(manual)message('Everything is up to date ✓','Όλα είναι ενημερωμένα ✓');
+    else message('Shared budget active · all devices see these figures','Κοινά έξοδα ενεργά · όλες οι συσκευές βλέπουν τα ίδια ποσά');
+  }catch(e){
+    setUI('offline');
+    message('Cloud unavailable; showing last saved figures.','Cloud μη διαθέσιμο· προβάλλονται τα τελευταία αποθηκευμένα ποσά.');
+  }finally{loading=false}
 }
-async function resume(){
-  if(!token||!validKey(token)){token='';setControls();return}
-  setControls();
-  ready=false;
-  status('Loading cloud budget…','Φόρτωση εξόδων cloud…');
+async function start(){
+  setUI('loading');
+  message('Loading the shared budget…','Φόρτωση κοινών εξόδων…');
   try{
-    const cloud=await request(token,'GET');
-    if(!cloud.exists||!Array.isArray(cloud.data))throw Error('Paired budget not found');
-    const cached=shadow(),local=snapshot(),remote=JSON.stringify(cloud.data);
-    if(cloud.updatedAt&&localStorage.getItem(TIME_KEY)&&cloud.updatedAt<localStorage.getItem(TIME_KEY)){ready=true;revision=localStorage.getItem(VERSION_KEY);status('Waiting for latest Cloudflare update…','Αναμονή για την τελευταία ενημέρωση Cloudflare…');return}
-    revision=cloud.revision;storeVersion(cloud.revision,cloud.updatedAt);ready=true;
-    if(local!==remote){
-      if(cached!==null&&local!==cached){
-        if(cached===remote){dirty=true;await persist();return}
-        conflict=true;status('Local and cloud entries both changed. Export your local backup, then Refresh to choose the cloud version.','Τα τοπικά και cloud έξοδα έχουν αλλάξει. Κρατήστε αντίγραφο και πατήστε Ανανέωση.');
-        return;
-      }
-      if(cached===null&&suppliers.length&&local!==remote){
-        ready=false;
-        if(!confirm(label('This device contains expenses not yet paired. Download a backup before replacing them with the cloud version. Replace local expenses now?','Αυτή η συσκευή έχει έξοδα που δεν συγχρονίστηκαν. Κρατήστε αντίγραφο πριν την αντικατάσταση. Να αντικατασταθούν;'))){
-          status('Local budget preserved. Disconnect or export a backup before continuing.','Τα τοπικά έξοδα διατηρήθηκαν. Αποσυνδεθείτε ή κρατήστε αντίγραφο.');return
-        }
-        ready=true;
-      }
-      install(cloud.data)
-    }else setShadow(suppliers);
-    status('Cloud sync active ✓','Ο συγχρονισμός cloud είναι ενεργός ✓');
-  }catch(e){ready=false;status('Cloud offline; your local budget is still here. Retry by reopening the page.','Το cloud δεν είναι διαθέσιμο· τα τοπικά έξοδα παραμένουν. Δοκιμάστε ξανά.')}
+    const result=await request('GET');
+    if(!Array.isArray(result.data))throw Error('Invalid shared budget');
+    if(queue.length){
+      ready=true;setUI('connected');
+      message('Uploading changes saved on this device…','Μεταφορά αλλαγών αυτής της συσκευής…');
+      drain();return;
+    }
+    if(result.data.length===0&&suppliers.length>0){
+      ready=false;setUI('migration');
+      message('Older test entries exist on this device. Publish them to the empty shared budget, or switch to the empty shared budget.','Υπάρχουν παλαιότερα δοκιμαστικά έξοδα στη συσκευή. Δημοσιεύστε τα στο κοινό σύστημα ή επιλέξτε τα κενά κοινά έξοδα.');
+      return;
+    }
+    applyCloud(result.data);ready=true;setUI('connected');
+    message('Shared budget active · no pairing needed ✓','Κοινά έξοδα ενεργά · χωρίς σύνδεσμο ✓');
+  }catch(e){
+    ready=false;setUI('offline');
+    message('Cannot load shared budget. Local figures remain safe; try Refresh.','Δεν φορτώθηκαν τα κοινά έξοδα. Τα τοπικά δεδομένα διατηρούνται· πατήστε Ανανέωση.');
+  }
 }
-$sync('sync-start').onclick=()=>connect(newKey(),true);
-$sync('sync-pair').onclick=()=>{const entered=prompt(label('Paste the pairing link or code from your other device:','Επικολλήστε τον σύνδεσμο ή κωδικό από την άλλη συσκευή:'));if(entered!==null)connect(keyFromInput(entered),false)};
-$sync('sync-share').onclick=async()=>{
-  const url=new URL('./suppliers.html',location.href);url.hash='sync='+token;
-  try{await navigator.clipboard.writeText(url.href);status('Pairing link copied. Open it on your other device.','Ο σύνδεσμος αντιγράφηκε. Ανοίξτε τον στην άλλη συσκευή.')}
-  catch{prompt(label('Copy the link to open on your other device:','Αντιγράψτε τον σύνδεσμο για την άλλη συσκευή:'),url.href)}
+$sync('sync-refresh').onclick=()=>{if(queue.length)drain();else if(!ready)start();else refresh(true)};
+$sync('sync-publish').onclick=async()=>{
+  if(!confirm(label('Publish all sample expenses saved on this device as the shared test budget? Every visitor will see them.','Να δημοσιευτούν όλα τα δοκιμαστικά έξοδα αυτής της συσκευής στο κοινό σύστημα; Θα τα βλέπει κάθε επισκέπτης.')))return;
+  ready=true;setUI('connected');queue.push([{type:'replace_all',data:JSON.parse(serial())}]);saveQueue();drain();
 };
-$sync('sync-refresh').onclick=()=>refresh(true);
-$sync('sync-stop').onclick=()=>{
-  if(!confirm(label('Stop cloud syncing on this device? Local entries will remain.','Διακοπή συγχρονισμού σε αυτή τη συσκευή; Τα τοπικά έξοδα διατηρούνται.')))return;
-  clearTimeout(timer);token='';ready=false;dirty=false;conflict=false;revision=null;
-  localStorage.removeItem(TOKEN_KEY);localStorage.removeItem(SHADOW_KEY);localStorage.removeItem(VERSION_KEY);localStorage.removeItem(TIME_KEY);setControls();
-  status('Disconnected; local budget retained.','Αποσυνδέθηκε· τα τοπικά έξοδα διατηρήθηκαν.');
+$sync('sync-use-cloud').onclick=()=>{
+  if(!confirm(label('Keep a backup of older local entries and show the shared budget instead?','Να κρατηθεί αντίγραφο των παλαιών τοπικών εξόδων και να εμφανιστεί το κοινό σύστημα;')))return;
+  localBackup();suppliers=[];localStorage.setItem(KEY,'[]');previous='[]';render();ready=true;setUI('connected');message('Shared test budget ready ✓','Τα κοινά δοκιμαστικά έξοδα είναι έτοιμα ✓');
 };
-window.addEventListener('em-budget-local-change',onChange);
-window.addEventListener('online',()=>{if(dirty)persist();else refresh(false)});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(dirty)persist();else refresh(false)}});
-setInterval(()=>{if(document.hidden)return;if(dirty){if(!conflict)persist()}else refresh(false)},20000);
-const linked=(location.hash.match(/^#sync=([a-f0-9]{64})$/i)||[])[1];
-if(linked){history.replaceState(null,'',location.pathname+location.search);connect(linked.toLowerCase(),false)}
-else if(token)resume();
-else{setControls();status('Your data is on this device. Start sync to connect another device.','Τα στοιχεία είναι σε αυτή τη συσκευή. Ξεκινήστε τον συγχρονισμό για άλλη συσκευή.')}
+window.addEventListener('online',()=>{if(queue.length&&ready)drain();else if(ready)refresh(false);else start()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(queue.length&&ready)drain();else if(ready)refresh(false);else start()}});
+window.addEventListener('storage',e=>{if(e.key===KEY&&!queue.length&&!networkBusy){try{suppliers=JSON.parse(e.newValue||'[]').map(normalise);previous=serial();render()}catch{}}});
+setInterval(()=>{if(document.hidden)return;if(queue.length&&ready)drain();else if(ready)refresh(false);else start()},12000);
+start();
 })();
