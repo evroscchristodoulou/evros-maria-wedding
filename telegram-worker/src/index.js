@@ -267,6 +267,7 @@ export default {
       do {
         const page=await env.SUBSCRIBERS.list({cursor,limit:100});
         for(const key of page.keys){
+          if(!/^\\d+$/.test(key.name))continue;
           const result=await send(env,key.name,message.trim());
           if(result.ok) delivered++;
           else { failed++; if(result.status===403) await env.SUBSCRIBERS.delete(key.name); }
