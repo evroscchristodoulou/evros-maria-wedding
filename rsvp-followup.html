@@ -60,7 +60,7 @@ footer{text-align:center;border-top:1px solid var(--rule);padding:30px;color:var
 </div>
 <div class="toolbar">
 <label class="field"><span data-en="Search guest or family" data-el="Αναζήτηση καλεσμένου ή οικογένειας">Search guest or family</span><input type="search" id="search" autocomplete="off" placeholder="Name / Όνομα"></label>
-<label class="field"><span data-en="RSVP status" data-el="Κατάσταση RSVP">RSVP status</span><select id="rsvp-filter"><option value="pending" data-en="Awaiting reply" data-el="Σε αναμονή">Awaiting reply</option><option value="all" data-en="All guests" data-el="Όλοι">All guests</option><option value="yes" data-en="Attending" data-el="Θα έρθουν">Attending</option><option value="no" data-en="Declined" data-el="Δεν θα έρθουν">Declined</option></select></label>
+<label class="field"><span data-en="RSVP status" data-el="Κατάσταση RSVP">RSVP status</span><select id="rsvp-filter"><option value="all" data-en="All guests" data-el="Όλοι">All guests</option><option value="pending" data-en="Awaiting reply" data-el="Σε αναμονή">Awaiting reply</option><option value="yes" data-en="Attending" data-el="Θα έρθουν">Attending</option><option value="no" data-en="Declined" data-el="Δεν θα έρθουν">Declined</option></select></label>
 <label class="field"><span data-en="Invitation" data-el="Πρόσκληση">Invitation</span><select id="invite-filter"><option value="all" data-en="All" data-el="Όλες">All</option><option value="sent" data-en="Sent" data-el="Εστάλη">Sent</option><option value="unsent" data-en="Not marked sent" data-el="Δεν καταγράφηκε">Not marked sent</option></select></label>
 <label class="field"><span data-en="Reminder" data-el="Υπενθύμιση">Reminder</span><select id="reminder-filter"><option value="all" data-en="All" data-el="Όλες">All</option><option value="reminded" data-en="Reminded" data-el="Υπενθυμίστηκε">Reminded</option><option value="not-reminded" data-en="Not reminded" data-el="Χωρίς υπενθύμιση">Not reminded</option></select></label>
 <div class="actions"><button class="small-btn" id="refresh" type="button" data-en="↻ Refresh" data-el="↻ Ανανέωση">↻ Refresh</button><button class="primary" id="export" type="button" data-en="↓ Export CSV" data-el="↓ Εξαγωγή CSV">↓ Export CSV</button></div>
@@ -73,12 +73,13 @@ footer{text-align:center;border-top:1px solid var(--rule);padding:30px;color:var
 const API='https://evros-maria-wedding.evros-christodoulou1995.workers.dev';
 const $=id=>document.getElementById(id);
 let lang=localStorage.getItem('wedding-lang')==='el'?'el':'en';
-let guests=[],records={},loaded=false,busy=false;
+let guests=[],records={},loaded=false,busy=false,lastRefresh=0;
 const t=(en,el)=>lang==='el'?el:en;
 function translate(){document.documentElement.lang=lang;document.querySelectorAll('[data-en]').forEach(e=>e.textContent=e.dataset[lang]);render()}
 $('language').onclick=()=>{lang=lang==='en'?'el':'en';localStorage.setItem('wedding-lang',lang);translate()};
 const when=date=>date?new Intl.DateTimeFormat(lang==='el'?'el-CY':'en-GB',{dateStyle:'medium',timeZone:'Asia/Nicosia'}).format(new Date(date)):t('Not recorded','Δεν καταγράφηκε');
 function state(g){return ['yes','no'].includes(g.rsvp)?g.rsvp:'pending'}
+const confirmedPeople=g=>state(g)==='yes'&&Number.isInteger(g.adults)&&Number.isInteger(g.children)&&g.adults+g.children>0?g.adults+g.children:Math.max(1,Number(g.partySize)||1);
 function meta(g){return records[g.id]||{}}
 function filtered(){const q=$('search').value.trim().toLocaleLowerCase();return guests.filter(g=>{const m=meta(g);return (!$('rsvp-filter').value||$('rsvp-filter').value==='all'||state(g)===$('rsvp-filter').value)&&($('invite-filter').value==='all'||(!!m.invitationSentAt)===($('invite-filter').value==='sent'))&&($('reminder-filter').value==='all'||(!!m.lastReminderAt)===($('reminder-filter').value==='reminded'))&&g.name.toLocaleLowerCase().includes(q)}).sort((a,b)=>a.name.localeCompare(b.name,lang==='el'?'el':'en'))}
 function button(label,handler,disabled=false,cls=''){const el=document.createElement('button');el.type='button';el.textContent=label;el.disabled=disabled;el.className=cls;el.onclick=handler;return el}
@@ -93,9 +94,9 @@ function render(){
  for(const g of rows){
   const m=meta(g),card=document.createElement('article');card.className='card';
   const info=document.createElement('div'),name=document.createElement('div');name.className='guest-name';name.textContent=g.name;info.append(name);
-  const badge=document.createElement('span');badge.className='pill '+state(g);badge.textContent=state(g)==='yes'?t('Attending','Θα έρθουν'):state(g)==='no'?t('Declined','Δεν θα έρθουν'):t('Awaiting reply','Σε αναμονή');info.append(badge);
+  const badge=document.createElement('span');badge.className='pill '+state(g);badge.textContent=state(g)==='yes'?t('Attending','Θα έρθουν'):state(g)==='no'?t('Declined','Δεν θα έρθουν'):t('Awaiting reply','Σε αναμονή');info.append(badge);if(g.needsReview){const review=document.createElement('span');review.className='pill';review.textContent=t('Review RSVP','Έλεγχος RSVP');info.append(review)}
   const sent=document.createElement('span');sent.className='pill';sent.textContent=m.invitationSentAt?t('Invitation sent','Πρόσκληση εστάλη'):t('Invitation not marked sent','Η πρόσκληση δεν καταγράφηκε');info.append(sent);
-  const detail=document.createElement('div');detail.className='details';detail.textContent=t('Invited: ','Προσκεκλημένοι: ')+(g.invitedAdults??g.partySize)+' '+t('adults','ενήλικες')+' · '+(g.invitedChildren??0)+' '+t('children','παιδιά')+' · '+t('Invitation: ','Πρόσκληση: ')+when(m.invitationSentAt)+' · '+t('Last reminder: ','Τελευταία υπενθύμιση: ')+when(m.lastReminderAt)+(m.reminderCount?' ('+m.reminderCount+')':'')+(g.updatedAt?' · RSVP: '+when(g.updatedAt):'');info.append(detail);
+  const detail=document.createElement('div');detail.className='details';detail.textContent=t('Invited: ','Προσκεκλημένοι: ')+(g.invitedAdults??g.partySize)+' '+t('adults','ενήλικες')+' · '+(g.invitedChildren??0)+' '+t('children','παιδιά')+' · '+t('Invitation: ','Πρόσκληση: ')+when(m.invitationSentAt)+' · '+t('Last reminder: ','Τελευταία υπενθύμιση: ')+when(m.lastReminderAt)+(m.reminderCount?' ('+m.reminderCount+')':'')+(g.updatedAt?' · RSVP: '+when(g.updatedAt):'')+(state(g)==='yes'?t(' · Confirmed people: ',' · Επιβεβαιωμένα άτομα: ')+confirmedPeople(g):'');info.append(detail);
   const controls=document.createElement('div');controls.className='card-actions';
   controls.append(button(m.invitationSentAt?t('✓ Sent','✓ Εστάλη'):t('Mark invitation sent','Καταγραφή αποστολής'),()=>update(g,m.invitationSentAt?'clear-invited':'invited'),busy));
   controls.append(button(t('WhatsApp reminder ↗','Υπενθύμιση WhatsApp ↗'),()=>whatsapp(g),busy||state(g)!=='pending','whatsapp'));
@@ -105,10 +106,13 @@ function render(){
  }
 }
 async function refresh(){if(busy)return;busy=true;$('refresh').disabled=true;$('status').textContent=t('Loading guest list and reminders…','Φόρτωση καλεσμένων και υπενθυμίσεων…');
- try{const [a,b]=await Promise.all([fetch(API+'/wedding/guest-plan',{cache:'no-store'}),fetch(API+'/wedding/rsvp-followup',{cache:'no-store'})]);if(!a.ok||!b.ok)throw Error('HTTP '+(a.ok?b.status:a.status));const [plan,followup]=await Promise.all([a.json(),b.json()]);if(!Array.isArray(plan.plan?.guests)||!followup.records)throw Error('Invalid response');guests=plan.plan.guests;records=followup.records;loaded=true;$('status').textContent=t('Up to date · '+guests.length+' invitations','Ενημερωμένο · '+guests.length+' προσκλήσεις');render()}catch(e){$('status').textContent=t('Unable to load shared data: ','Αδυναμία φόρτωσης: ')+e.message}finally{busy=false;$('refresh').disabled=false}}
+ try{const [a,b]=await Promise.all([fetch(API+'/wedding/guest-plan',{cache:'no-store'}),fetch(API+'/wedding/rsvp-followup',{cache:'no-store'})]);if(!a.ok||!b.ok)throw Error('HTTP '+(a.ok?b.status:a.status));const [plan,followup]=await Promise.all([a.json(),b.json()]);if(!Array.isArray(plan.plan?.guests)||!followup.records)throw Error('Invalid response');guests=plan.plan.guests;records=followup.records;loaded=true;lastRefresh=Date.now();$('status').textContent=t('Up to date · '+guests.length+' invitations','Ενημερωμένο · '+guests.length+' προσκλήσεις');render()}catch(e){$('status').textContent=t('Unable to load shared data: ','Αδυναμία φόρτωσης: ')+e.message}finally{busy=false;$('refresh').disabled=false}}
 function safeCsv(v){let s=String(v??'');if(/^[\s]*[=+@\-\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"'}
 $('export').onclick=()=>{if(!loaded)return;const head=['Guest / Family','RSVP','Invited Adults','Invited Children','Invitation Sent At','Last Reminder At','Reminder Count','RSVP Updated At'];const rows=filtered().map(g=>{const m=meta(g);return[g.name,state(g),g.invitedAdults??g.partySize,g.invitedChildren??0,m.invitationSentAt||'',m.lastReminderAt||'',m.reminderCount||0,g.updatedAt||'']});const csv='\ufeff'+[head,...rows].map(row=>row.map(safeCsv).join(',')).join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='evros-maria-rsvp-followup.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);$('status').textContent=t('Exported '+rows.length+' filtered invitations.','Εξήχθησαν '+rows.length+' φιλτραρισμένες προσκλήσεις.')};
 for(const id of ['search','rsvp-filter','invite-filter','reminder-filter'])$(id).addEventListener(id==='search'?'input':'change',render);
 $('refresh').onclick=refresh;
 translate();refresh();
+window.addEventListener('focus',()=>{if(Date.now()-lastRefresh>3000)refresh()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-lastRefresh>5000)refresh()});
+setInterval(()=>{if(!document.hidden&&Date.now()-lastRefresh>30000)refresh()},30000);
 </script></body></html>
