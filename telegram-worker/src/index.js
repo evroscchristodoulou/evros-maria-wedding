@@ -11,6 +11,40 @@ export default {
       if(!env.SUBSCRIBERS)return json({error:'Storage unavailable'},503);
       if(request.method!=='GET' && request.headers.get('Origin')!==origin)return json({error:'Forbidden'},403);
 
+      // Wedding predictions: public anonymous nickname entries, admin-only result reveal.
+      if(url.pathname==='/wedding/predictions' && ['GET','POST'].includes(request.method)){
+        const configKey='wedding:predictions:config:v1';
+        const questions=[
+          {id:'dance',en:'Which style will the first dance be?',el:'Τι στυλ θα έχει ο πρώτος χορός;',options:[['Romantic','Ρομαντικός'],['Upbeat','Ξεσηκωτικός'],['Surprise','Έκπληξη']]},
+          {id:'cake',en:'How many tiers will the wedding cake have?',el:'Πόσους ορόφους θα έχει η γαμήλια τούρτα;',options:[['Two','Δύο'],['Three','Τρεις'],['Four or more','Τέσσερις ή περισσότεροι']]},
+          {id:'entrance',en:'What will the couple’s entrance be like?',el:'Πώς θα είναι η είσοδος του ζευγαριού;',options:[['Classic','Κλασική'],['Dance entrance','Με χορό'],['Surprise','Έκπληξη']]}
+        ];
+        const cfg=await env.SUBSCRIBERS.get(configKey,'json')||{open:true,revealed:false,answers:{}};
+        if(request.method==='GET'){
+          let entries=[];const listing=await env.SUBSCRIBERS.list({prefix:'wedding:prediction:entry:',limit:1000});
+          const records=await Promise.all(listing.keys.map(k=>env.SUBSCRIBERS.get(k.name,'json')));entries=records.filter(Boolean);
+          const scores=cfg.revealed?entries.map(x=>({nickname:x.nickname,score:questions.reduce((n,q)=>n+(x.picks[q.id]===cfg.answers?.[q.id]?1:0),0)})).sort((a,b)=>b.score-a.score).slice(0,20):[];
+          return json({questions,open:cfg.open,revealed:cfg.revealed,entries:entries.length,leaderboard:scores});
+        }
+        const raw=await request.text();if(raw.length>3000)return json({error:'Request too large'},413);
+        let d;try{d=JSON.parse(raw)}catch{return json({error:'Invalid JSON'},400)}
+        if(d?.action==='configure'){
+          if(!env.ANNOUNCEMENTS_ADMIN_KEY||request.headers.get('Authorization')!=='Bearer '+env.ANNOUNCEMENTS_ADMIN_KEY)return json({error:'Publishing key required'},401);
+          if(typeof d.open!=='boolean'||typeof d.revealed!=='boolean'||!d.answers||questions.some(q=>!Number.isInteger(d.answers[q.id])||d.answers[q.id]<0||d.answers[q.id]>2))return json({error:'Invalid results'},400);
+          await env.SUBSCRIBERS.put(configKey,JSON.stringify({open:d.open,revealed:d.revealed,answers:d.answers}));
+          return json({ok:true});
+        }
+        if(d?.action!=='enter'||!cfg.open||cfg.revealed)return json({error:'Competition closed'},403);
+        const nickname=String(d.nickname||'').trim(),token=String(d.token||'');
+        if(nickname.length<2||nickname.length>28||!/^[a-zA-Z0-9_\u0370-\u03ff\u1f00-\u1fff -]+$/.test(nickname)||!/^[a-f0-9-]{36}$/.test(token))return json({error:'Invalid nickname or token'},400);
+        if(!d.picks||questions.some(q=>!Number.isInteger(d.picks[q.id])||d.picks[q.id]<0||d.picks[q.id]>2))return json({error:'Choose all predictions'},400);
+        const tokenHash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token))),b=>b.toString(16).padStart(2,'0')).join('');
+        const key='wedding:prediction:entry:'+tokenHash;
+        if(await env.SUBSCRIBERS.get(key))return json({error:'This device has already submitted a prediction'},409);
+        await env.SUBSCRIBERS.put(key,JSON.stringify({nickname,picks:d.picks,createdAt:new Date().toISOString()}));
+        return json({ok:true});
+      }
+
       // Public wedding announcements. Publishing requires a server-side secret.
       if(url.pathname==='/wedding/announcements' && (request.method==='GET'||request.method==='POST')){
         const key='wedding:public:announcements:v1';
