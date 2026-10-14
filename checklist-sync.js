@@ -28,7 +28,7 @@ async function drain(){
   while(queue.length){
    const batch=queue.slice(0,25);
    await request('POST',batch);
-   queue.splice(0,batch.length);storeQueue();
+   for(const op of batch){const index=queue.indexOf(op);if(index>=0)queue.splice(index,1)}storeQueue();
   }
   msg('Shared checklist saved ✓','Η κοινή λίστα αποθηκεύτηκε ✓');
  }catch(e){msg('Changes saved on this device; cloud retry pending.','Οι αλλαγές αποθηκεύτηκαν στη συσκευή· εκκρεμεί συγχρονισμός.')}
