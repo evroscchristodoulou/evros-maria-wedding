@@ -11,6 +11,25 @@ export default {
       if(!env.SUBSCRIBERS)return json({error:'Storage unavailable'},503);
       if(request.method!=='GET' && request.headers.get('Origin')!==origin)return json({error:'Forbidden'},403);
 
+      // Public wedding announcements. Publishing requires a server-side secret.
+      if(url.pathname==='/wedding/announcements' && (request.method==='GET'||request.method==='POST')){
+        const key='wedding:public:announcements:v1';
+        if(request.method==='GET'){
+          const stored=await env.SUBSCRIBERS.get(key,'json');
+          return json({announcements:Array.isArray(stored?.announcements)?stored.announcements:[],updatedAt:stored?.updatedAt||null});
+        }
+        if(!env.ANNOUNCEMENTS_ADMIN_KEY || request.headers.get('Authorization')!=='Bearer '+env.ANNOUNCEMENTS_ADMIN_KEY)return json({error:'Invalid publishing key'},401);
+        const raw=await request.text();if(raw.length>30000)return json({error:'Too large'},413);
+        let input;try{input=JSON.parse(raw)}catch{return json({error:'Invalid JSON'},400)}
+        if(!input||!Array.isArray(input.announcements)||input.announcements.length>30)return json({error:'Invalid announcements'},400);
+        const valid=input.announcements.every(a=>a&&typeof a.id==='string'&&a.id.length<=80&&typeof a.titleEn==='string'&&a.titleEn.trim()&&a.titleEn.length<=140&&typeof a.titleEl==='string'&&a.titleEl.length<=140&&typeof a.bodyEn==='string'&&a.bodyEn.trim()&&a.bodyEn.length<=1800&&typeof a.bodyEl==='string'&&a.bodyEl.length<=1800&&typeof a.date==='string'&&/^\\d{4}-\\d{2}-\\d{2}$/.test(a.date)&&typeof a.published==='boolean');
+        if(!valid)return json({error:'Invalid announcement entry'},400);
+        const announcements=input.announcements.map(a=>({id:a.id,titleEn:a.titleEn.trim(),titleEl:a.titleEl.trim(),bodyEn:a.bodyEn.trim(),bodyEl:a.bodyEl.trim(),date:a.date,published:a.published}));
+        const updatedAt=new Date().toISOString();
+        await env.SUBSCRIBERS.put(key,JSON.stringify({announcements,updatedAt}));
+        return json({ok:true,updatedAt});
+      }
+
       // Test-only cross-device budget. A high-entropy pairing key identifies each isolated workspace.
       if(url.pathname==='/wedding/budget-sync' && (request.method==='GET'||request.method==='POST')){
         const token=request.headers.get('X-Wedding-Sync-Key')||'';
