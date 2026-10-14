@@ -66,7 +66,7 @@ footer{text-align:center;border-top:1px solid var(--line);padding:30px;color:var
 <main>
 <div class="eyebrow">EVROS &amp; MARIA · 10.06.2028</div>
 <div class="head-row"><div><h1 data-en="Wedding Dashboard." data-el="Πίνακας Οργάνωσης Γάμου.">Wedding Dashboard.</h1><p data-en="Your guests, seating, payments and preparation deadlines in one place." data-el="Καλεσμένοι, τραπέζια, πληρωμές και προθεσμίες προετοιμασίας σε ένα μέρος.">Your guests, seating, payments and preparation deadlines in one place.</p></div><button id="refresh" class="outline" data-en="↻ Refresh data" data-el="↻ Ανανέωση δεδομένων">↻ Refresh data</button></div>
-<div class="notice" data-en="Planning preview: guest data and test budget load from Cloudflare; checklist tasks come from this device only. Management pages are not password-protected yet. Do not enter private or real financial data until access is secured." data-el="Δοκιμαστική οργάνωση: οι καλεσμένοι και ο δοκιμαστικός προϋπολογισμός φορτώνονται από το Cloudflare· οι εργασίες είναι μόνο σε αυτή τη συσκευή. Η διαχείριση δεν προστατεύεται ακόμη με κωδικό. Μην καταχωρείτε προσωπικά ή πραγματικά οικονομικά δεδομένα μέχρι να ασφαλιστεί.">Planning preview: guest data and test budget load from Cloudflare; checklist tasks come from this device only. Management pages are not password-protected yet. Do not enter private or real financial data until access is secured.</div>
+<div class="notice" data-en="Planning preview: guests, shared checklist and test budget load from Cloudflare. Management pages are not password-protected. Do not enter private or real financial information." data-el="Δοκιμαστική οργάνωση: καλεσμένοι, κοινή λίστα εργασιών και δοκιμαστικός προϋπολογισμός φορτώνονται από το Cloudflare. Η διαχείριση δεν προστατεύεται με κωδικό. Μην καταχωρείτε προσωπικά ή πραγματικά οικονομικά στοιχεία.">Planning preview: guest data and test budget load from Cloudflare; checklist tasks come from this device only. Management pages are not password-protected yet. Do not enter private or real financial data until access is secured.</div>
 <div class="status" id="status" role="status" aria-live="polite"></div>
 <div class="module-menu" role="tablist" aria-label="Dashboard sections">
 <button type="button" class="module-tab active" role="tab" aria-selected="true" aria-controls="view-overview" data-view="overview" data-en="Overview" data-el="Επισκόπηση">Overview</button>
@@ -79,7 +79,7 @@ footer{text-align:center;border-top:1px solid var(--line);padding:30px;color:var
 <section id="view-overview" class="dashboard-view" role="tabpanel" aria-label="Overview"><section class="metrics" aria-label="Planning overview">
 <a class="metric" href="./rsvp-followup.html"><strong id="pending">—</strong><span data-en="Awaiting RSVP" data-el="Αναμονή RSVP">Awaiting RSVP</span><small data-en="Follow up →" data-el="Υπενθυμίσεις →">Follow up →</small></a>
 <a class="metric" href="./seating-arrangement.html"><strong id="unassigned">—</strong><span data-en="Confirmed people without seats" data-el="Επιβεβαιωμένα άτομα χωρίς θέση">Confirmed people without seats</span><small data-en="Arrange tables →" data-el="Οργάνωση τραπεζιών →">Arrange tables →</small></a>
-<a class="metric" href="./planning-checklist.html"><strong id="tasks-open">—</strong><span data-en="Open tasks on this device" data-el="Εκκρεμείς εργασίες στη συσκευή">Open tasks on this device</span><small data-en="Open checklist →" data-el="Άνοιγμα εργασιών →">Open checklist →</small></a>
+<a class="metric" href="./planning-checklist.html"><strong id="tasks-open">—</strong><span data-en="Open preparation tasks" data-el="Εκκρεμείς εργασίες">Open tasks on this device</span><small data-en="Open checklist →" data-el="Άνοιγμα εργασιών →">Open checklist →</small></a>
 <a class="metric" href="./payment-calendar.html"><strong id="payments-soon">—</strong><span data-en="Payments due in 30 days" data-el="Πληρωμές εντός 30 ημερών">Payments due in 30 days</span><small data-en="Payment calendar →" data-el="Ημερολόγιο πληρωμών →">Payment calendar →</small></a>
 </section>
 <div class="columns">
@@ -94,7 +94,7 @@ footer{text-align:center;border-top:1px solid var(--line);padding:30px;color:var
 <div class="progress"><div id="rsvp-bar" style="width:0"></div></div><p id="rsvp-note" style="font-size:12px"></p></section>
 <section class="panel"><div class="panel-head"><h2 data-en="Budget overview" data-el="Επισκόπηση εξόδων">Budget overview</h2><a href="./suppliers.html" data-en="Manage →" data-el="Διαχείριση →">Manage →</a></div>
 <div class="inline-stats"><div class="mini"><strong id="cost">—</strong><span data-en="Agreed costs" data-el="Συμφωνημένα έξοδα">Agreed costs</span></div><div class="mini"><strong id="paid">—</strong><span data-en="Paid" data-el="Πληρωμένα">Paid</span></div><div class="mini"><strong id="remaining">—</strong><span data-en="Remaining" data-el="Υπόλοιπο">Remaining</span></div><div class="mini"><strong id="supplier-count">—</strong><span data-en="Expense entries" data-el="Καταχωρίσεις εξόδων">Expense entries</span></div></div><p style="font-size:11px" data-en="Shared TEST budget, not actual wedding finances." data-el="Κοινός ΔΟΚΙΜΑΣΤΙΚΟΣ προϋπολογισμός, όχι πραγματικά οικονομικά γάμου.">Shared TEST budget, not actual wedding finances.</p></section>
-<section class="panel"><div class="panel-head"><h2 data-en="Checklist progress" data-el="Πρόοδος εργασιών">Checklist progress</h2><a href="./planning-checklist.html" data-en="Open →" data-el="Άνοιγμα →">Open →</a></div><strong id="task-progress">—</strong><div class="progress"><div id="task-bar" style="width:0"></div></div><p style="font-size:11px" data-en="Saved on this device; not synced across devices." data-el="Αποθηκευμένο στη συσκευή· δεν συγχρονίζεται μεταξύ συσκευών.">Saved on this device; not synced across devices.</p></section>
+<section class="panel"><div class="panel-head"><h2 data-en="Checklist progress" data-el="Πρόοδος εργασιών">Checklist progress</h2><a href="./planning-checklist.html" data-en="Open →" data-el="Άνοιγμα →">Open →</a></div><strong id="task-progress">—</strong><div class="progress"><div id="task-bar" style="width:0"></div></div><p style="font-size:11px" data-en="Shared cloud checklist when available." data-el="Κοινή λίστα cloud όταν είναι διαθέσιμη.">Saved on this device; not synced across devices.</p></section>
 <section class="panel"><h2 data-en="Quick access" data-el="Γρήγορη πρόσβαση">Quick access</h2><div class="quick">
 <a href="./guest-list.html" data-en="Guest list ↗" data-el="Καλεσμένοι ↗">Guest list ↗</a>
 <a href="./rsvp-followup.html" data-en="RSVP reminders ↗" data-el="Υπενθυμίσεις RSVP ↗">RSVP reminders ↗</a>
@@ -176,7 +176,7 @@ function dateText(d){if(!d)return t('No date','Χωρίς ημερομηνία')
 function taskData(){if(cloudTasks!==null)return cloudTasks;try{const data=JSON.parse(localStorage.getItem('em-checklist-v1')||'null');if(Array.isArray(data))return data.filter(x=>x&&typeof x.name==='string');}catch{}return null}
 function addItem(root,title,sub,link,urgent=false){const row=document.createElement('div'),dot=document.createElement('i'),txt=document.createElement('div'),strong=document.createElement('strong'),small=document.createElement('small'),a=document.createElement('a');row.className='item';dot.className='marker'+(urgent?' urgent':'');txt.className='item-text';strong.textContent=title;small.textContent=sub;txt.append(strong,small);a.href=link;a.textContent=t('Open →','Άνοιγμα →');row.append(dot,txt,a);root.append(row)}
 function empty(root,en,el){const d=document.createElement('div');d.className='empty';d.textContent=t(en,el);root.append(d)}
-function paint(){
+function paint(){updateModules();
  const tasks=taskData(),taskOpen=tasks?tasks.filter(x=>!x.done):null;
  $('tasks-open').textContent=taskOpen?fmt(taskOpen.length):'—';
  $('task-progress').textContent=tasks?fmt(tasks.filter(x=>x.done).length)+' / '+fmt(tasks.length)+' '+t('completed','ολοκληρώθηκαν'):t('Not started on this device','Δεν ξεκίνησε σε αυτή τη συσκευή');
@@ -190,7 +190,7 @@ function paint(){
  }else{for(const id of ['pending','unassigned','invited','confirmed','declined','not-sent'])$(id).textContent='—';$('rsvp-note').textContent=t('Guest data unavailable','Τα δεδομένα καλεσμένων δεν είναι διαθέσιμα');$('rsvp-bar').style.width='0%'}
  if(tasks){const overdue=taskOpen.filter(x=>{const d=daysUntil(x.due);return d!==null&&d<0});const soon=taskOpen.filter(x=>{const d=daysUntil(x.due);return d!==null&&d>=0&&d<=30});if(overdue.length)addItem(attention,t(fmt(overdue.length)+' overdue preparation tasks',fmt(overdue.length)+' εκπρόθεσμες εργασίες'),t('Review overdue deadlines','Ελέγξτε τις εκπρόθεσμες εργασίες'),'./planning-checklist.html',true);if(soon.length)addItem(attention,t(fmt(soon.length)+' tasks due within 30 days',fmt(soon.length)+' εργασίες εντός 30 ημερών'),t('Review upcoming deadlines','Ελέγξτε τις επόμενες προθεσμίες'),'./planning-checklist.html');
  for(const x of [...taskOpen].filter(x=>daysUntil(x.due)!==null).sort((a,b)=>a.due.localeCompare(b.due)).slice(0,5)){const days=daysUntil(x.due);addItem(taskList,x.name,dateText(x.due)+' · '+(days<0?t('Overdue','Εκπρόθεσμο'):days===0?t('Today','Σήμερα'):t('In ','Σε ')+days+' '+t('days','ημέρες')),'./planning-checklist.html',days<0)}
- if(!taskList.children.length)empty(taskList,'No open tasks with deadlines on this device.','Δεν υπάρχουν εκκρεμείς εργασίες με προθεσμία σε αυτή τη συσκευή.');
+ if(!taskList.children.length)empty(taskList,'No open tasks with deadlines.','Δεν υπάρχουν εκκρεμείς εργασίες με προθεσμία.');
  }else empty(taskList,'No checklist saved on this device yet. Open the checklist to begin.','Δεν υπάρχει λίστα εργασιών σε αυτή τη συσκευή. Ανοίξτε τις εργασίες για να ξεκινήσετε.');
  if(budget){const total=budget.reduce((n,s)=>n+(Number(s.cost)||0),0),paid=budget.reduce((n,s)=>n+(Array.isArray(s.payments)?s.payments.reduce((v,p)=>v+(Number(p.amount)||0),0):0),0),due=budget.filter(s=>{const days=daysUntil(s.due);const balance=(Number(s.cost)||0)-(Array.isArray(s.payments)?s.payments.reduce((v,p)=>v+(Number(p.amount)||0),0):0);return balance>0&&days!==null&&days>=0&&days<=30});const overdue=budget.filter(s=>{const days=daysUntil(s.due);const balance=(Number(s.cost)||0)-(Array.isArray(s.payments)?s.payments.reduce((v,p)=>v+(Number(p.amount)||0),0):0);return balance>0&&days!==null&&days<0});$('cost').textContent=euro(total);$('paid').textContent=euro(paid);$('remaining').textContent=euro(total-paid);$('supplier-count').textContent=fmt(budget.length);$('payments-soon').textContent=fmt(due.length);
  if(due.length)addItem(attention,t(fmt(due.length)+' payments due in the next 30 days',fmt(due.length)+' πληρωμές εντός 30 ημερών'),t('Check due dates and balances','Ελέγξτε ημερομηνίες και υπόλοιπα'),'./payment-calendar.html');
@@ -204,5 +204,55 @@ function paint(){
 async function load(){const btn=$('refresh');btn.disabled=true;$('status').textContent=t('Refreshing cloud data…','Ανανέωση δεδομένων cloud…');const requests=[fetch(API+'/wedding/guest-plan',{cache:'no-store'}),fetch(API+'/wedding/rsvp-followup',{cache:'no-store'}),fetch(API+'/wedding/budget-shared',{cache:'no-store'}),fetch(API+'/wedding/checklist',{cache:'no-store'})];const results=await Promise.allSettled(requests.map(async p=>{const r=await p;if(!r.ok)throw Error('HTTP '+r.status);return r.json()}));plan=results[0].status==='fulfilled'&&Array.isArray(results[0].value.plan?.guests)?results[0].value.plan:null;followup=results[1].status==='fulfilled'?results[1].value.records||null:null;budget=results[2].status==='fulfilled'&&Array.isArray(results[2].value.data)?results[2].value.data:null;cloudTasks=results[3].status==='fulfilled'&&Array.isArray(results[3].value.entries)?results[3].value.entries.filter(x=>x&&!x.deleted&&typeof x.name==='string'):null;const unavailable=[!plan&&!followup,!budget,cloudTasks===null].filter(Boolean).length;$('status').textContent=unavailable?t('Some cloud sources are unavailable; unavailable metrics show —.','Κάποιες πηγές cloud δεν είναι διαθέσιμες· εμφανίζεται —.'):t('Updated from Cloudflare · ','Ενημερώθηκε από Cloudflare · ')+new Intl.DateTimeFormat(lang==='el'?'el-CY':'en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Nicosia'}).format(new Date());btn.disabled=false;paint()}
 function translate(){document.documentElement.lang=lang;document.querySelectorAll('[data-en]').forEach(el=>el.textContent=el.dataset[lang]);paint()}
 $('language').onclick=()=>{lang=lang==='en'?'el':'en';localStorage.setItem('wedding-lang',lang);translate()};
-$('refresh').onclick=load;window.addEventListener('focus',()=>{if(plan||budget)load()});window.addEventListener('storage',e=>{if(e.key==='em-checklist-v1')paint()});translate();load();
+
+const VIEWS=['overview','guests','seating','finance','tasks','media'];
+let activeView='overview';
+function selectView(name,writeHistory=true){
+ const view=VIEWS.includes(name)?name:'overview';activeView=view;
+ document.querySelectorAll('.module-tab').forEach(tab=>{const active=tab.dataset.view===view;tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1});
+ for(const id of VIEWS)document.getElementById('view-'+id).hidden=id!==view;
+ if(writeHistory)history.replaceState(null,'','#'+view);
+}
+function updateModules(){
+ const size=g=>Math.max(1,Number(g.partySize)||1);
+ if(plan){
+  const guests=plan.guests,yes=guests.filter(g=>g.rsvp==='yes'),no=guests.filter(g=>g.rsvp==='no'),pending=guests.length-yes.length-no.length;
+  const adultsChildren=yes.reduce((acc,g)=>{const total=size(g);let children=Number.isInteger(g.children)?g.children:Number(g.invitedChildren)||0;children=Math.max(0,Math.min(total,children));let adults=Number.isInteger(g.adults)?g.adults:total-children;if(adults+children!==total)adults=total-children;acc.adults+=adults;acc.children+=children;return acc},{adults:0,children:0});
+  for(const [id,n] of [['guest-invitations',guests.length],['guest-pending',pending],['guest-yes',yes.length],['guest-no',no.length],['guest-adults',adultsChildren.adults],['guest-children',adultsChildren.children]])$(id).textContent=fmt(n);
+  const tables=plan.tables||[],valid=new Set(tables.map(x=>x.id)),assigned=yes.filter(g=>valid.has(g.tableId)),occupied=assigned.reduce((n,g)=>n+size(g),0),capacity=tables.reduce((n,table)=>n+Math.max(0,Number(table.capacity)||0),0),unassigned=yes.filter(g=>!valid.has(g.tableId)).reduce((n,g)=>n+size(g),0);
+  for(const [id,n] of [['seat-tables',tables.length],['seat-used',occupied],['seat-capacity',capacity],['seat-unassigned',unassigned]])$(id).textContent=fmt(n);
+  const root=$('table-occupancy');root.replaceChildren();
+  for(const table of tables){
+   const used=assigned.filter(g=>g.tableId===table.id).reduce((n,g)=>n+size(g),0),max=Math.max(0,Number(table.capacity)||0);
+   const row=document.createElement('div'),top=document.createElement('div'),name=document.createElement('span'),count=document.createElement('strong'),bar=document.createElement('div'),fill=document.createElement('i');
+   row.className='table-row'+(used>max?' over-capacity':'');top.className='table-row-top';name.textContent=table.name;count.textContent=fmt(used)+' / '+fmt(max);bar.className='table-progress';fill.style.width=(max?Math.min(100,used/max*100):used?100:0)+'%';top.append(name,count);bar.append(fill);row.append(top,bar);root.append(row);
+  }
+  if(!tables.length)empty(root,'No tables created yet.','Δεν έχουν δημιουργηθεί τραπέζια.');
+ }else{
+  for(const id of ['guest-invitations','guest-pending','guest-yes','guest-no','guest-adults','guest-children','seat-tables','seat-used','seat-capacity','seat-unassigned'])$(id).textContent='—';
+  $('table-occupancy').replaceChildren();empty($('table-occupancy'),'Seating data unavailable.','Τα δεδομένα τραπεζιών δεν είναι διαθέσιμα.');
+ }
+ if(budget){
+  const cost=budget.reduce((n,x)=>n+(Number(x.cost)||0),0),paid=budget.reduce((n,x)=>n+(Array.isArray(x.payments)?x.payments.reduce((m,p)=>m+(Number(p.amount)||0),0):0),0);
+  const soon=budget.filter(x=>{const d=daysUntil(x.due);const paid=Array.isArray(x.payments)?x.payments.reduce((m,p)=>m+(Number(p.amount)||0),0):0;return d!==null&&d>=0&&d<=30&&Number(x.cost)>paid}).length;
+  $('finance-total').textContent=euro(cost);$('finance-paid').textContent=euro(paid);$('finance-due').textContent=euro(cost-paid);$('finance-soon').textContent=fmt(soon);
+ }else for(const id of ['finance-total','finance-paid','finance-due','finance-soon'])$(id).textContent='—';
+ const tasks=taskData();
+ if(tasks){
+  const open=tasks.filter(x=>!x.done),overdue=open.filter(x=>{const d=daysUntil(x.due);return d!==null&&d<0});
+  for(const [id,n] of [['tasks-total',tasks.length],['tasks-complete',tasks.length-open.length],['tasks-remaining',open.length],['tasks-overdue',overdue.length]])$(id).textContent=fmt(n);
+  const root=$('tasks-detail-list');root.replaceChildren();
+  for(const x of open.filter(x=>daysUntil(x.due)!==null).sort((a,b)=>a.due.localeCompare(b.due)).slice(0,8)){
+   const d=daysUntil(x.due);addItem(root,x.name,dateText(x.due)+' · '+(d<0?t('Overdue','Εκπρόθεσμο'):d===0?t('Today','Σήμερα'):t('In ','Σε ')+d+' '+t('days','ημέρες')),'./planning-checklist.html',d<0);
+  }
+  if(!root.children.length)empty(root,'No upcoming dated tasks.','Δεν υπάρχουν εργασίες με προθεσμία.');
+ }else{
+  for(const id of ['tasks-total','tasks-complete','tasks-remaining','tasks-overdue'])$(id).textContent='—';
+  $('tasks-detail-list').replaceChildren();empty($('tasks-detail-list'),'Task data unavailable.','Τα δεδομένα εργασιών δεν είναι διαθέσιμα.');
+ }
+}
+document.querySelectorAll('.module-tab').forEach(tab=>tab.addEventListener('click',()=>selectView(tab.dataset.view)));
+window.addEventListener('hashchange',()=>selectView(location.hash.slice(1),false));
+
+$('refresh').onclick=load;window.addEventListener('focus',()=>{if(plan||budget)load()});window.addEventListener('storage',e=>{if(e.key==='em-checklist-v1')paint()});selectView(location.hash.slice(1),false);translate();load();
 </script></body></html>
