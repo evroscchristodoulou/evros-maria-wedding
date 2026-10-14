@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#faf9f7"><title>Planning Control Centre · Evros & Maria</title>
+<meta name="theme-color" content="#faf9f7"><title>Wedding Dashboard · Evros & Maria</title>
 <link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="manifest" href="./manifest.webmanifest">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -41,11 +41,22 @@ p{color:var(--muted)}.head-row{display:flex;align-items:center;justify-content:s
 footer{text-align:center;border-top:1px solid var(--line);padding:30px;color:var(--muted);font-size:10px;letter-spacing:.15em}
 @media(max-width:850px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.columns{grid-template-columns:1fr}}
 @media(max-width:480px){.panel{padding:17px}.metrics{gap:9px}.metric{padding:15px 12px}.metric strong{font-size:32px}.quick{grid-template-columns:1fr}}
+.module-menu{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0 25px;border-bottom:1px solid var(--line);padding-bottom:14px}
+.module-tab{border:1px solid var(--line);background:#fffdfa;color:var(--ink);padding:12px 16px;font-size:12px;font-weight:500}
+.module-tab.active,.module-tab[aria-selected="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.module-tab:hover:not(.active){border-color:#9d866a}
+.dashboard-view[hidden]{display:none!important}.section-intro{margin:22px 0}.section-intro h2{font-size:42px}
+.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.detail-grid>.panel{margin:0 0 18px}
+.table-row{padding:12px 0;border-top:1px solid var(--line)}.table-row-top{display:flex;justify-content:space-between;gap:10px;font-size:12px}.table-row-top strong{font-weight:500}
+.table-progress{height:7px;background:#e9e3da;margin-top:8px;border-radius:8px;overflow:hidden}.table-progress i{display:block;height:100%;background:#9d866a}.table-row.over-capacity .table-progress i{background:#b96d5f}
+.module-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.module-links a{padding:20px;border:1px solid var(--line);text-decoration:none;display:grid;gap:5px}.module-links a strong{font-size:14px;font-weight:500}.module-links a span{font-size:11px;color:var(--muted)}
+.module-links a:hover{background:#faf5eb;border-color:#b49b7b}.mini-note{font-size:11px}
+@media(max-width:850px){.detail-grid{grid-template-columns:1fr}}
+@media(max-width:520px){.module-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.module-tab{padding:11px 7px;font-size:11px}.module-links{grid-template-columns:1fr}}
 </style></head><body>
 <header><a class="brand" href="./">E &amp; M</a><button id="language" type="button">ΕΛ / EN</button></header>
 <nav aria-label="Wedding management">
-<a href="./planning-centre.html" aria-current="page" data-en="Planning Centre" data-el="Κέντρο Οργάνωσης">Planning Centre</a>
-<a href="./dashboard.html" data-en="Dashboard" data-el="Πίνακας">Dashboard</a>
+<a href="./planning-centre.html" aria-current="page" data-en="Wedding Dashboard" data-el="Πίνακας Γάμου">Wedding Dashboard</a>
 <a href="./rsvp-followup.html" data-en="RSVP Follow-up" data-el="Παρακολούθηση RSVP">RSVP Follow-up</a>
 <a href="./guest-list.html" data-en="Guest List" data-el="Καλεσμένοι">Guest List</a>
 <a href="./seating-arrangement.html" data-en="Seating" data-el="Τραπέζια">Seating</a>
@@ -54,10 +65,18 @@ footer{text-align:center;border-top:1px solid var(--line);padding:30px;color:var
 </nav>
 <main>
 <div class="eyebrow">EVROS &amp; MARIA · 10.06.2028</div>
-<div class="head-row"><div><h1 data-en="Wedding Planning Centre." data-el="Κέντρο Οργάνωσης Γάμου.">Wedding Planning Centre.</h1><p data-en="Your guests, seating, payments and preparation deadlines in one place." data-el="Καλεσμένοι, τραπέζια, πληρωμές και προθεσμίες προετοιμασίας σε ένα μέρος.">Your guests, seating, payments and preparation deadlines in one place.</p></div><button id="refresh" class="outline" data-en="↻ Refresh data" data-el="↻ Ανανέωση δεδομένων">↻ Refresh data</button></div>
+<div class="head-row"><div><h1 data-en="Wedding Dashboard." data-el="Πίνακας Οργάνωσης Γάμου.">Wedding Dashboard.</h1><p data-en="Your guests, seating, payments and preparation deadlines in one place." data-el="Καλεσμένοι, τραπέζια, πληρωμές και προθεσμίες προετοιμασίας σε ένα μέρος.">Your guests, seating, payments and preparation deadlines in one place.</p></div><button id="refresh" class="outline" data-en="↻ Refresh data" data-el="↻ Ανανέωση δεδομένων">↻ Refresh data</button></div>
 <div class="notice" data-en="Planning preview: guest data and test budget load from Cloudflare; checklist tasks come from this device only. Management pages are not password-protected yet. Do not enter private or real financial data until access is secured." data-el="Δοκιμαστική οργάνωση: οι καλεσμένοι και ο δοκιμαστικός προϋπολογισμός φορτώνονται από το Cloudflare· οι εργασίες είναι μόνο σε αυτή τη συσκευή. Η διαχείριση δεν προστατεύεται ακόμη με κωδικό. Μην καταχωρείτε προσωπικά ή πραγματικά οικονομικά δεδομένα μέχρι να ασφαλιστεί.">Planning preview: guest data and test budget load from Cloudflare; checklist tasks come from this device only. Management pages are not password-protected yet. Do not enter private or real financial data until access is secured.</div>
 <div class="status" id="status" role="status" aria-live="polite"></div>
-<section class="metrics" aria-label="Planning overview">
+<div class="module-menu" role="tablist" aria-label="Dashboard sections">
+<button type="button" class="module-tab active" role="tab" aria-selected="true" aria-controls="view-overview" data-view="overview" data-en="Overview" data-el="Επισκόπηση">Overview</button>
+<button type="button" class="module-tab" role="tab" aria-selected="false" aria-controls="view-guests" data-view="guests" data-en="Guests & RSVP" data-el="Καλεσμένοι & RSVP">Guests & RSVP</button>
+<button type="button" class="module-tab" role="tab" aria-selected="false" aria-controls="view-seating" data-view="seating" data-en="Seating" data-el="Τραπέζια">Seating</button>
+<button type="button" class="module-tab" role="tab" aria-selected="false" aria-controls="view-finance" data-view="finance" data-en="Budget & Payments" data-el="Έξοδα & Πληρωμές">Budget & Payments</button>
+<button type="button" class="module-tab" role="tab" aria-selected="false" aria-controls="view-tasks" data-view="tasks" data-en="Tasks" data-el="Εργασίες">Tasks</button>
+<button type="button" class="module-tab" role="tab" aria-selected="false" aria-controls="view-media" data-view="media" data-en="Photos, Wishes & Music" data-el="Φωτογραφίες, Ευχές & Μουσική">Photos, Wishes & Music</button>
+</div>
+<section id="view-overview" class="dashboard-view" role="tabpanel" aria-label="Overview"><section class="metrics" aria-label="Planning overview">
 <a class="metric" href="./rsvp-followup.html"><strong id="pending">—</strong><span data-en="Awaiting RSVP" data-el="Αναμονή RSVP">Awaiting RSVP</span><small data-en="Follow up →" data-el="Υπενθυμίσεις →">Follow up →</small></a>
 <a class="metric" href="./seating-arrangement.html"><strong id="unassigned">—</strong><span data-en="Confirmed people without seats" data-el="Επιβεβαιωμένα άτομα χωρίς θέση">Confirmed people without seats</span><small data-en="Arrange tables →" data-el="Οργάνωση τραπεζιών →">Arrange tables →</small></a>
 <a class="metric" href="./planning-checklist.html"><strong id="tasks-open">—</strong><span data-en="Open tasks on this device" data-el="Εκκρεμείς εργασίες στη συσκευή">Open tasks on this device</span><small data-en="Open checklist →" data-el="Άνοιγμα εργασιών →">Open checklist →</small></a>
@@ -85,6 +104,67 @@ footer{text-align:center;border-top:1px solid var(--line);padding:30px;color:var
 <a href="./planning-checklist.html" data-en="Preparation checklist ↗" data-el="Εργασίες προετοιμασίας ↗">Preparation checklist ↗</a>
 </div></section>
 </div></div>
+</section>
+<section id="view-guests" class="dashboard-view" role="tabpanel" aria-label="Guests and RSVP" hidden>
+<div class="section-intro"><h2 data-en="Guests & RSVP" data-el="Καλεσμένοι & RSVP">Guests & RSVP</h2><p data-en="Attendance, invitation progress and follow-up actions." data-el="Συμμετοχές, προσκλήσεις και υπενθυμίσεις.">Attendance, invitation progress and follow-up actions.</p></div>
+<div class="detail-grid">
+<div class="panel"><h3 data-en="Invitation totals" data-el="Σύνολα προσκλήσεων">Invitation totals</h3><div class="inline-stats">
+<div class="mini"><strong id="guest-invitations">—</strong><span data-en="Invitations" data-el="Προσκλήσεις">Invitations</span></div>
+<div class="mini"><strong id="guest-pending">—</strong><span data-en="Awaiting reply" data-el="Σε αναμονή">Awaiting reply</span></div>
+<div class="mini"><strong id="guest-yes">—</strong><span data-en="Attending" data-el="Θα έρθουν">Attending</span></div>
+<div class="mini"><strong id="guest-no">—</strong><span data-en="Declined" data-el="Δεν θα έρθουν">Declined</span></div>
+<div class="mini"><strong id="guest-adults">—</strong><span data-en="Adults attending" data-el="Ενήλικες">Adults attending</span></div>
+<div class="mini"><strong id="guest-children">—</strong><span data-en="Children attending" data-el="Παιδιά">Children attending</span></div>
+</div></div>
+<div class="panel"><h3 data-en="Invitation follow-up" data-el="Υπενθυμίσεις προσκλήσεων">Invitation follow-up</h3><p data-en="Track sent invitations, unanswered RSVPs and WhatsApp reminders." data-el="Παρακολουθήστε προσκλήσεις, αναπάντητα RSVP και υπενθυμίσεις WhatsApp.">Track sent invitations, unanswered RSVPs and WhatsApp reminders.</p><div class="quick">
+<a href="./guest-list.html" data-en="Manage guest list ↗" data-el="Διαχείριση καλεσμένων ↗">Manage guest list ↗</a>
+<a href="./rsvp-followup.html" data-en="Send RSVP reminders ↗" data-el="Υπενθυμίσεις RSVP ↗">Send RSVP reminders ↗</a>
+<a href="./rsvp.html" data-en="Guest RSVP form ↗" data-el="Φόρμα RSVP ↗">Guest RSVP form ↗</a>
+<a href="./seating-arrangement.html" data-en="Assign tables ↗" data-el="Οργάνωση τραπεζιών ↗">Assign tables ↗</a>
+</div></div></div>
+</section>
+<section id="view-seating" class="dashboard-view" role="tabpanel" aria-label="Seating" hidden>
+<div class="section-intro"><h2 data-en="Seating arrangement" data-el="Οργάνωση τραπεζιών">Seating arrangement</h2><p data-en="Table capacity, assigned seats and confirmed guests waiting for a table." data-el="Χωρητικότητα, θέσεις και επιβεβαιωμένοι καλεσμένοι χωρίς τραπέζι.">Table capacity, assigned seats and confirmed guests waiting for a table.</p></div>
+<div class="detail-grid"><div class="panel"><div class="inline-stats">
+<div class="mini"><strong id="seat-tables">—</strong><span data-en="Tables" data-el="Τραπέζια">Tables</span></div>
+<div class="mini"><strong id="seat-used">—</strong><span data-en="Seats occupied" data-el="Κατειλημμένες θέσεις">Seats occupied</span></div>
+<div class="mini"><strong id="seat-capacity">—</strong><span data-en="Total capacity" data-el="Συνολική χωρητικότητα">Total capacity</span></div>
+<div class="mini"><strong id="seat-unassigned">—</strong><span data-en="Confirmed people unassigned" data-el="Επιβεβαιωμένα άτομα χωρίς τραπέζι">Confirmed people unassigned</span></div>
+</div><p><a href="./seating-arrangement.html" data-en="Manage seating and table assignments ↗" data-el="Διαχείριση θέσεων και τραπεζιών ↗">Manage seating and table assignments ↗</a></p></div>
+<div class="panel"><h3 data-en="Table occupancy" data-el="Πληρότητα τραπεζιών">Table occupancy</h3><div id="table-occupancy" class="table-occupancy"></div></div></div>
+</section>
+<section id="view-finance" class="dashboard-view" role="tabpanel" aria-label="Budget and payments" hidden>
+<div class="section-intro"><h2 data-en="Budget & payments" data-el="Έξοδα & πληρωμές">Budget & payments</h2><p data-en="Shared test-budget balances and upcoming deadlines." data-el="Υπόλοιπα δοκιμαστικού προϋπολογισμού και επόμενες προθεσμίες.">Shared test-budget balances and upcoming deadlines.</p></div>
+<div class="detail-grid"><div class="panel"><h3 data-en="Financial overview" data-el="Οικονομική επισκόπηση">Financial overview</h3><div class="inline-stats">
+<div class="mini"><strong id="finance-total">—</strong><span data-en="Total costs" data-el="Συνολικά έξοδα">Total costs</span></div>
+<div class="mini"><strong id="finance-paid">—</strong><span data-en="Paid" data-el="Πληρωμένα">Paid</span></div>
+<div class="mini"><strong id="finance-due">—</strong><span data-en="Outstanding balance" data-el="Υπόλοιπο">Outstanding balance</span></div>
+<div class="mini"><strong id="finance-soon">—</strong><span data-en="Due within 30 days" data-el="Πληρωμές εντός 30 ημερών">Due within 30 days</span></div>
+</div></div><div class="panel"><h3 data-en="Financial tools" data-el="Οικονομικά εργαλεία">Financial tools</h3><div class="quick">
+<a href="./suppliers.html" data-en="Budget & suppliers ↗" data-el="Έξοδα & προμηθευτές ↗">Budget & suppliers ↗</a>
+<a href="./payment-calendar.html" data-en="Payment calendar ↗" data-el="Ημερολόγιο πληρωμών ↗">Payment calendar ↗</a>
+</div><p class="mini-note" data-en="Test mode only. Do not store actual financial records until administrator authentication is enabled." data-el="Μόνο δοκιμαστική λειτουργία. Μην αποθηκεύετε πραγματικά οικονομικά στοιχεία πριν ενεργοποιηθεί η ταυτοποίηση.">Test mode only. Do not store actual financial records until administrator authentication is enabled.</p></div></div>
+</section>
+<section id="view-tasks" class="dashboard-view" role="tabpanel" aria-label="Preparation tasks" hidden>
+<div class="section-intro"><h2 data-en="Preparation tasks" data-el="Εργασίες προετοιμασίας">Preparation tasks</h2><p data-en="Shared checklist progress, upcoming tasks and deadlines." data-el="Πρόοδος κοινής λίστας, εργασίες και προθεσμίες.">Shared checklist progress, upcoming tasks and deadlines.</p></div>
+<div class="detail-grid"><div class="panel"><h3 data-en="Task progress" data-el="Πρόοδος εργασιών">Task progress</h3><div class="inline-stats">
+<div class="mini"><strong id="tasks-total">—</strong><span data-en="Total tasks" data-el="Σύνολο εργασιών">Total tasks</span></div>
+<div class="mini"><strong id="tasks-complete">—</strong><span data-en="Completed" data-el="Ολοκληρώθηκαν">Completed</span></div>
+<div class="mini"><strong id="tasks-remaining">—</strong><span data-en="Open" data-el="Εκκρεμούν">Open</span></div>
+<div class="mini"><strong id="tasks-overdue">—</strong><span data-en="Overdue" data-el="Εκπρόθεσμες">Overdue</span></div>
+</div><p><a href="./planning-checklist.html" data-en="Manage preparation checklist ↗" data-el="Διαχείριση εργασιών ↗">Manage preparation checklist ↗</a></p></div>
+<div class="panel"><h3 data-en="Next deadlines" data-el="Επόμενες προθεσμίες">Next deadlines</h3><div id="tasks-detail-list"></div></div></div>
+</section>
+<section id="view-media" class="dashboard-view" role="tabpanel" aria-label="Photos, wishes and music" hidden>
+<div class="section-intro"><h2 data-en="Photos, wishes & music" data-el="Φωτογραφίες, ευχές & μουσική">Photos, wishes & music</h2><p data-en="All the celebration-day management tools from your original dashboard." data-el="Όλα τα εργαλεία διαχείρισης της ημέρας του γάμου από τον προηγούμενο πίνακα.">All the celebration-day management tools from your original dashboard.</p></div>
+<div class="panel"><div class="module-links">
+<a href="./manage-photos.html"><strong data-en="Photo management" data-el="Διαχείριση φωτογραφιών">Photo management</strong><span data-en="Review and organise guest uploads ↗" data-el="Προβολή και οργάνωση φωτογραφιών ↗">Review and organise guest uploads ↗</span></a>
+<a href="./manage-wishes.html"><strong data-en="Guest wishes" data-el="Ευχές καλεσμένων">Guest wishes</strong><span data-en="Read and moderate wishes ↗" data-el="Προβολή και έγκριση ευχών ↗">Read and moderate wishes ↗</span></a>
+<a href="./manage-songs.html"><strong data-en="Song requests" data-el="Μουσικές επιλογές">Song requests</strong><span data-en="Review requested songs ↗" data-el="Διαχείριση τραγουδιών ↗">Review requested songs ↗</span></a>
+<a href="./photo-wall.html"><strong data-en="Live photo wall" data-el="Ζωντανό άλμπουμ">Live photo wall</strong><span data-en="Open projector display ↗" data-el="Προβολή σε οθόνη ↗">Open projector display ↗</span></a>
+<a href="./photo-challenges.html"><strong data-en="Photo challenges" data-el="Φωτογραφικές προκλήσεις">Photo challenges</strong><span data-en="View guest photo activities ↗" data-el="Δείτε τις φωτογραφικές δραστηριότητες ↗">View guest photo activities ↗</span></a>
+<a href="./"><strong data-en="Wedding website" data-el="Ιστοσελίδα γάμου">Wedding website</strong><span data-en="View guest experience ↗" data-el="Προβολή σελίδας καλεσμένων ↗">View guest experience ↗</span></a>
+</div></div></section>
 </main><footer>EVROS &amp; MARIA · 10.06.2028</footer>
 <script>
 const API='https://evros-maria-wedding.evros-christodoulou1995.workers.dev', $=id=>document.getElementById(id);
