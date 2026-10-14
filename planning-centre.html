@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#faf9f7"><title>Wedding Dashboard · Evros & Maria</title>
+<meta name="theme-color" content="#faf9f7"><title>Wedding Planning Centre · Evros & Maria</title>
 <link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="manifest" href="./manifest.webmanifest">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -53,30 +53,66 @@ footer{text-align:center;border-top:1px solid var(--line);padding:30px;color:var
 .module-links a:hover{background:#faf5eb;border-color:#b49b7b}.mini-note{font-size:11px}
 @media(max-width:850px){.detail-grid{grid-template-columns:1fr}}
 @media(max-width:520px){.module-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.module-tab{padding:11px 7px;font-size:11px}.module-links{grid-template-columns:1fr}}
+
+/* Unified wedding planning navigation */
+header{padding:18px max(20px,calc((100vw - 1160px)/2))}
+.utility-nav{display:flex;align-items:center;justify-content:space-between;gap:14px;max-width:1160px;margin:auto;padding:13px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.utility-nav a{border:0;padding:0;font-size:12px}
+.utility-nav .back-link{text-decoration:none;color:var(--muted)}.utility-nav .back-link:hover{color:var(--ink)}
+.utility-current{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)}
+.tools-dropdown{position:relative;margin-left:auto;z-index:12}.tools-dropdown summary{list-style:none;cursor:pointer;border:1px solid var(--line);padding:10px 14px;background:#fffdfa;font-size:12px}.tools-dropdown summary::-webkit-details-marker{display:none}
+.tools-popover{position:absolute;right:0;top:calc(100% + 6px);width:min(290px,90vw);background:#fffdfa;border:1px solid var(--line);box-shadow:0 14px 34px #2926221c;padding:14px;display:grid;gap:2px}
+.tools-popover strong{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin:12px 0 4px}.tools-popover strong:first-child{margin-top:0}
+.tools-popover a{display:block;padding:8px 10px;border-radius:3px;text-decoration:none;font-size:12px}.tools-popover a:hover{background:#f5f0e8}
+main{padding-top:35px}.head-row h1{font-size:clamp(45px,6vw,70px)}.head-row p{max-width:620px}
+.wedding-timeline{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:21px 26px;margin:25px 0;background:#f4f0e8;border:1px solid #e3dbce}
+.wedding-timeline>div:first-child{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.wedding-timeline span:first-child{font-size:10px;letter-spacing:.13em;color:var(--muted)}
+.wedding-timeline strong#wedding-countdown{font:400 42px 'Cormorant Garamond',serif;line-height:1}
+.wedding-timeline small{font-size:11px;color:var(--muted)}
+.wedding-timeline-copy{display:grid;gap:3px;text-align:right}.wedding-timeline-copy strong{font:400 20px 'Cormorant Garamond',serif}.wedding-timeline-copy span{font-size:11px;color:var(--muted)}
+.module-menu{position:sticky;top:0;z-index:9;background:var(--paper);padding:14px 0;margin:17px 0 25px;box-shadow:0 1px 0 var(--line);border-bottom:0}
+.module-tab{border-radius:5px;transition:background .15s,border-color .15s}.module-tab:focus-visible,.tools-dropdown summary:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.overview-label{display:flex;justify-content:space-between;align-items:baseline;gap:12px}.overview-label h2{font-size:32px}.overview-label p{font-size:11px}
+.quick-description{font-size:11px;margin:0 0 15px}.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+@media(max-width:650px){.utility-current{display:none}.wedding-timeline{align-items:flex-start;padding:18px;flex-direction:column;gap:8px}.wedding-timeline-copy{text-align:left}.module-menu{position:static}.overview-label{display:block}.overview-label p{margin:0 0 10px}}
 </style></head><body>
 <header><a class="brand" href="./">E &amp; M</a><button id="language" type="button">ΕΛ / EN</button></header>
-<nav aria-label="Wedding management">
-<a href="./planning-centre.html" aria-current="page" data-en="Wedding Dashboard" data-el="Πίνακας Γάμου">Wedding Dashboard</a>
-<a href="./rsvp-followup.html" data-en="RSVP Follow-up" data-el="Παρακολούθηση RSVP">RSVP Follow-up</a>
-<a href="./guest-list.html" data-en="Guest List" data-el="Καλεσμένοι">Guest List</a>
-<a href="./seating-arrangement.html" data-en="Seating" data-el="Τραπέζια">Seating</a>
-<a href="./suppliers.html" data-en="Budget" data-el="Έξοδα">Budget</a>
-<a href="./planning-checklist.html" data-en="Checklist" data-el="Εργασίες">Checklist</a>
+<nav class="utility-nav" aria-label="Planning navigation">
+<a class="back-link" href="./" data-en="← Wedding website" data-el="← Ιστοσελίδα γάμου">← Wedding website</a>
+<span class="utility-current" data-en="Planning Centre" data-el="Κέντρο Οργάνωσης">Planning Centre</span>
+<details class="tools-dropdown" id="tools-dropdown">
+<summary data-en="All management tools ▾" data-el="Όλα τα εργαλεία ▾">All management tools ▾</summary>
+<div class="tools-popover">
+<strong data-en="Guests & seating" data-el="Καλεσμένοι & τραπέζια">Guests & seating</strong>
+<a href="./guest-list.html" data-en="Guest list" data-el="Λίστα καλεσμένων">Guest list</a>
+<a href="./rsvp-followup.html" data-en="RSVP follow-up" data-el="Υπενθυμίσεις RSVP">RSVP follow-up</a>
+<a href="./seating-arrangement.html" data-en="Seating arrangement" data-el="Οργάνωση τραπεζιών">Seating arrangement</a>
+<strong data-en="Planning & finance" data-el="Οργάνωση & οικονομικά">Planning & finance</strong>
+<a href="./planning-checklist.html" data-en="Preparation checklist" data-el="Εργασίες προετοιμασίας">Preparation checklist</a>
+<a href="./suppliers.html" data-en="Budget & suppliers" data-el="Έξοδα & προμηθευτές">Budget & suppliers</a>
+<a href="./payment-calendar.html" data-en="Payment calendar" data-el="Ημερολόγιο πληρωμών">Payment calendar</a>
+<strong data-en="Wedding day" data-el="Ημέρα γάμου">Wedding day</strong>
+<a href="./manage-photos.html" data-en="Manage photos" data-el="Διαχείριση φωτογραφιών">Manage photos</a>
+<a href="./manage-wishes.html" data-en="Manage wishes" data-el="Διαχείριση ευχών">Manage wishes</a>
+<a href="./manage-songs.html" data-en="Manage music" data-el="Διαχείριση μουσικής">Manage music</a>
+<a href="./photo-wall.html" data-en="Projector photo wall" data-el="Προβολή φωτογραφιών">Projector photo wall</a>
+</div></details>
 </nav>
 <main>
-<div class="eyebrow">EVROS &amp; MARIA · 10.06.2028</div>
-<div class="head-row"><div><h1 data-en="Wedding Dashboard." data-el="Πίνακας Οργάνωσης Γάμου.">Wedding Dashboard.</h1><p data-en="Your guests, seating, payments and preparation deadlines in one place." data-el="Καλεσμένοι, τραπέζια, πληρωμές και προθεσμίες προετοιμασίας σε ένα μέρος.">Your guests, seating, payments and preparation deadlines in one place.</p></div><button id="refresh" class="outline" data-en="↻ Refresh data" data-el="↻ Ανανέωση δεδομένων">↻ Refresh data</button></div>
+<div class="eyebrow">EVROS &amp; MARIA · SATURDAY 10.06.2028</div>
+<div class="head-row"><div><h1 data-en="Wedding Planning Centre" data-el="Κέντρο Οργάνωσης Γάμου">Wedding Planning Centre</h1><p data-en="Everything you need to plan your day, from invitations to the final details." data-el="Όλη η οργάνωση του γάμου σας, από τις προσκλήσεις μέχρι την τελευταία λεπτομέρεια.">Your guests, seating, payments and preparation deadlines in one place.</p></div><button id="refresh" class="outline" data-en="↻ Refresh data" data-el="↻ Ανανέωση δεδομένων">↻ Refresh data</button></div>
+<div class="wedding-timeline"><div><span data-en="COUNTDOWN TO OUR DAY" data-el="ΑΝΤΙΣΤΡΟΦΗ ΜΕΤΡΗΣΗ">COUNTDOWN TO OUR DAY</span><strong id="wedding-countdown">—</strong><small id="wedding-countdown-label" data-en="days to go" data-el="ημέρες απομένουν">days to go</small></div><div class="wedding-timeline-copy"><strong data-en="Saturday, 10 June 2028" data-el="Σάββατο, 10 Ιουνίου 2028">Saturday, 10 June 2028</strong><span>The Barnyards Venues · Skarinou, Cyprus</span></div></div>
 <div class="notice" data-en="Planning preview: guests, shared checklist and test budget load from Cloudflare. Management pages are not password-protected. Do not enter private or real financial information." data-el="Δοκιμαστική οργάνωση: καλεσμένοι, κοινή λίστα εργασιών και δοκιμαστικός προϋπολογισμός φορτώνονται από το Cloudflare. Η διαχείριση δεν προστατεύεται με κωδικό. Μην καταχωρείτε προσωπικά ή πραγματικά οικονομικά στοιχεία.">Planning preview: guest data and test budget load from Cloudflare; checklist tasks come from this device only. Management pages are not password-protected yet. Do not enter private or real financial data until access is secured.</div>
 <div class="status" id="status" role="status" aria-live="polite"></div>
-<div class="module-menu" role="tablist" aria-label="Dashboard sections">
+<div class="module-menu" role="tablist" aria-label="Planning Centre sections">
 <button type="button" class="module-tab active" role="tab" aria-selected="true" aria-controls="view-overview" data-view="overview" data-en="Overview" data-el="Επισκόπηση">Overview</button>
 <button type="button" class="module-tab" role="tab" aria-selected="false" aria-controls="view-guests" data-view="guests" data-en="Guests & RSVP" data-el="Καλεσμένοι & RSVP">Guests & RSVP</button>
 <button type="button" class="module-tab" role="tab" aria-selected="false" aria-controls="view-seating" data-view="seating" data-en="Seating" data-el="Τραπέζια">Seating</button>
 <button type="button" class="module-tab" role="tab" aria-selected="false" aria-controls="view-finance" data-view="finance" data-en="Budget & Payments" data-el="Έξοδα & Πληρωμές">Budget & Payments</button>
 <button type="button" class="module-tab" role="tab" aria-selected="false" aria-controls="view-tasks" data-view="tasks" data-en="Tasks" data-el="Εργασίες">Tasks</button>
-<button type="button" class="module-tab" role="tab" aria-selected="false" aria-controls="view-media" data-view="media" data-en="Photos, Wishes & Music" data-el="Φωτογραφίες, Ευχές & Μουσική">Photos, Wishes & Music</button>
+<button type="button" class="module-tab" role="tab" aria-selected="false" aria-controls="view-media" data-view="media" data-en="Wedding Day" data-el="Ημέρα Γάμου">Wedding Day</button>
 </div>
-<section id="view-overview" class="dashboard-view" role="tabpanel" aria-label="Overview"><section class="metrics" aria-label="Planning overview">
+<section id="view-overview" class="dashboard-view" role="tabpanel" aria-label="Overview"><div class="overview-label"><h2 data-en="At a glance" data-el="Με μια ματιά">At a glance</h2><p data-en="Live progress from your existing wedding records" data-el="Ενημέρωση από τα υπάρχοντα δεδομένα οργάνωσης">Live progress from your existing wedding records</p></div><section class="metrics" aria-label="Planning overview">
 <a class="metric" href="./rsvp-followup.html"><strong id="pending">—</strong><span data-en="Awaiting RSVP" data-el="Αναμονή RSVP">Awaiting RSVP</span><small data-en="Follow up →" data-el="Υπενθυμίσεις →">Follow up →</small></a>
 <a class="metric" href="./seating-arrangement.html"><strong id="unassigned">—</strong><span data-en="Confirmed people without seats" data-el="Επιβεβαιωμένα άτομα χωρίς θέση">Confirmed people without seats</span><small data-en="Arrange tables →" data-el="Οργάνωση τραπεζιών →">Arrange tables →</small></a>
 <a class="metric" href="./planning-checklist.html"><strong id="tasks-open">—</strong><span data-en="Open preparation tasks" data-el="Εκκρεμείς εργασίες">Open tasks on this device</span><small data-en="Open checklist →" data-el="Άνοιγμα εργασιών →">Open checklist →</small></a>
@@ -95,7 +131,7 @@ footer{text-align:center;border-top:1px solid var(--line);padding:30px;color:var
 <section class="panel"><div class="panel-head"><h2 data-en="Budget overview" data-el="Επισκόπηση εξόδων">Budget overview</h2><a href="./suppliers.html" data-en="Manage →" data-el="Διαχείριση →">Manage →</a></div>
 <div class="inline-stats"><div class="mini"><strong id="cost">—</strong><span data-en="Agreed costs" data-el="Συμφωνημένα έξοδα">Agreed costs</span></div><div class="mini"><strong id="paid">—</strong><span data-en="Paid" data-el="Πληρωμένα">Paid</span></div><div class="mini"><strong id="remaining">—</strong><span data-en="Remaining" data-el="Υπόλοιπο">Remaining</span></div><div class="mini"><strong id="supplier-count">—</strong><span data-en="Expense entries" data-el="Καταχωρίσεις εξόδων">Expense entries</span></div></div><p style="font-size:11px" data-en="Shared TEST budget, not actual wedding finances." data-el="Κοινός ΔΟΚΙΜΑΣΤΙΚΟΣ προϋπολογισμός, όχι πραγματικά οικονομικά γάμου.">Shared TEST budget, not actual wedding finances.</p></section>
 <section class="panel"><div class="panel-head"><h2 data-en="Checklist progress" data-el="Πρόοδος εργασιών">Checklist progress</h2><a href="./planning-checklist.html" data-en="Open →" data-el="Άνοιγμα →">Open →</a></div><strong id="task-progress">—</strong><div class="progress"><div id="task-bar" style="width:0"></div></div><p style="font-size:11px" data-en="Shared cloud checklist when available." data-el="Κοινή λίστα cloud όταν είναι διαθέσιμη.">Saved on this device; not synced across devices.</p></section>
-<section class="panel"><h2 data-en="Quick access" data-el="Γρήγορη πρόσβαση">Quick access</h2><div class="quick">
+<section class="panel"><h2 data-en="Manage your wedding" data-el="Διαχείριση γάμου">Manage your wedding</h2><p class="quick-description" data-en="Open the editing tools when you need to make changes." data-el="Ανοίξτε τα εργαλεία για να κάνετε αλλαγές.">Open the editing tools when you need to make changes.</p><h3 class="visually-hidden" data-en="Quick access" data-el="Γρήγορη πρόσβαση">Quick access</h3><div hidden><h2 data-en="Quick access" data-el="Γρήγορη πρόσβαση">Quick access</h2></div><div class="quick">
 <a href="./guest-list.html" data-en="Guest list ↗" data-el="Καλεσμένοι ↗">Guest list ↗</a>
 <a href="./rsvp-followup.html" data-en="RSVP reminders ↗" data-el="Υπενθυμίσεις RSVP ↗">RSVP reminders ↗</a>
 <a href="./seating-arrangement.html" data-en="Seating plan ↗" data-el="Πλάνο τραπεζιών ↗">Seating plan ↗</a>
@@ -156,7 +192,7 @@ footer{text-align:center;border-top:1px solid var(--line);padding:30px;color:var
 <div class="panel"><h3 data-en="Next deadlines" data-el="Επόμενες προθεσμίες">Next deadlines</h3><div id="tasks-detail-list"></div></div></div>
 </section>
 <section id="view-media" class="dashboard-view" role="tabpanel" aria-label="Photos, wishes and music" hidden>
-<div class="section-intro"><h2 data-en="Photos, wishes & music" data-el="Φωτογραφίες, ευχές & μουσική">Photos, wishes & music</h2><p data-en="All the celebration-day management tools from your original dashboard." data-el="Όλα τα εργαλεία διαχείρισης της ημέρας του γάμου από τον προηγούμενο πίνακα.">All the celebration-day management tools from your original dashboard.</p></div>
+<div class="section-intro"><h2 data-en="Wedding day tools" data-el="Εργαλεία ημέρας γάμου">Wedding day tools</h2><p data-en="Manage guest photos, wishes, song requests and the projector display." data-el="Διαχειριστείτε φωτογραφίες, ευχές, μουσικές επιλογές και την προβολή στην οθόνη.">All the celebration-day management tools from your original dashboard.</p></div>
 <div class="panel"><div class="module-links">
 <a href="./manage-photos.html"><strong data-en="Photo management" data-el="Διαχείριση φωτογραφιών">Photo management</strong><span data-en="Review and organise guest uploads ↗" data-el="Προβολή και οργάνωση φωτογραφιών ↗">Review and organise guest uploads ↗</span></a>
 <a href="./manage-wishes.html"><strong data-en="Guest wishes" data-el="Ευχές καλεσμένων">Guest wishes</strong><span data-en="Read and moderate wishes ↗" data-el="Προβολή και έγκριση ευχών ↗">Read and moderate wishes ↗</span></a>
@@ -202,7 +238,7 @@ function paint(){updateModules();
  if(!attention.children.length)empty(attention,plan&&budget?'No urgent items identified from available records.':'No alerts from available data; some sources may be unavailable.',plan&&budget?'Δεν εντοπίστηκαν επείγοντα θέματα στα διαθέσιμα δεδομένα.':'Δεν υπάρχουν ειδοποιήσεις στα διαθέσιμα δεδομένα· κάποιες πηγές ίσως δεν είναι διαθέσιμες.');
 }
 async function load(){const btn=$('refresh');btn.disabled=true;$('status').textContent=t('Refreshing cloud data…','Ανανέωση δεδομένων cloud…');const requests=[fetch(API+'/wedding/guest-plan',{cache:'no-store'}),fetch(API+'/wedding/rsvp-followup',{cache:'no-store'}),fetch(API+'/wedding/budget-shared',{cache:'no-store'}),fetch(API+'/wedding/checklist',{cache:'no-store'})];const results=await Promise.allSettled(requests.map(async p=>{const r=await p;if(!r.ok)throw Error('HTTP '+r.status);return r.json()}));plan=results[0].status==='fulfilled'&&Array.isArray(results[0].value.plan?.guests)?results[0].value.plan:null;followup=results[1].status==='fulfilled'?results[1].value.records||null:null;budget=results[2].status==='fulfilled'&&Array.isArray(results[2].value.data)?results[2].value.data:null;cloudTasks=results[3].status==='fulfilled'&&Array.isArray(results[3].value.entries)?results[3].value.entries.filter(x=>x&&!x.deleted&&typeof x.name==='string'):null;const unavailable=[!plan&&!followup,!budget,cloudTasks===null].filter(Boolean).length;$('status').textContent=unavailable?t('Some cloud sources are unavailable; unavailable metrics show —.','Κάποιες πηγές cloud δεν είναι διαθέσιμες· εμφανίζεται —.'):t('Updated from Cloudflare · ','Ενημερώθηκε από Cloudflare · ')+new Intl.DateTimeFormat(lang==='el'?'el-CY':'en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Nicosia'}).format(new Date());btn.disabled=false;paint()}
-function translate(){document.documentElement.lang=lang;document.querySelectorAll('[data-en]').forEach(el=>el.textContent=el.dataset[lang]);paint()}
+function translate(){document.documentElement.lang=lang;document.querySelectorAll('[data-en]').forEach(el=>el.textContent=el.dataset[lang]);if(typeof daysLeft==='number'&&daysLeft>=0)$('wedding-countdown').textContent=new Intl.NumberFormat(lang==='el'?'el-CY':'en-GB').format(daysLeft);paint()}
 $('language').onclick=()=>{lang=lang==='en'?'el':'en';localStorage.setItem('wedding-lang',lang);translate()};
 
 const VIEWS=['overview','guests','seating','finance','tasks','media'];
@@ -251,7 +287,20 @@ function updateModules(){
   $('tasks-detail-list').replaceChildren();empty($('tasks-detail-list'),'Task data unavailable.','Τα δεδομένα εργασιών δεν είναι διαθέσιμα.');
  }
 }
-document.querySelectorAll('.module-tab').forEach(tab=>tab.addEventListener('click',()=>selectView(tab.dataset.view)));
+document.querySelectorAll('.module-tab').forEach(tab=>{
+ tab.addEventListener('click',()=>selectView(tab.dataset.view));
+ tab.addEventListener('keydown',event=>{
+  if(!['ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
+  event.preventDefault();
+  const index=VIEWS.indexOf(tab.dataset.view);
+  const next=event.key==='Home'?0:event.key==='End'?VIEWS.length-1:(index+(event.key==='ArrowRight'?1:-1)+VIEWS.length)%VIEWS.length;
+  selectView(VIEWS[next]);document.querySelector('.module-tab[data-view="'+VIEWS[next]+'"]').focus();
+ });
+});
+const daysLeft=Math.ceil((Date.UTC(2028,5,10)-Date.now())/86400000);
+$('wedding-countdown').textContent=daysLeft>=0?new Intl.NumberFormat(lang==='el'?'el-CY':'en-GB').format(daysLeft):'♥';
+if(daysLeft<0){$('wedding-countdown-label').textContent=t('The celebration has arrived','Η μεγάλη μέρα έφτασε')}
+$('tools-dropdown').addEventListener('click',e=>{if(e.target.closest('a'))$('tools-dropdown').open=false});
 window.addEventListener('hashchange',()=>selectView(location.hash.slice(1),false));
 
 $('refresh').onclick=load;window.addEventListener('focus',()=>{if(plan||budget)load()});window.addEventListener('storage',e=>{if(e.key==='em-checklist-v1')paint()});selectView(location.hash.slice(1),false);translate();load();
