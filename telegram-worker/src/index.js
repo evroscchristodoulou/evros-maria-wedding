@@ -318,7 +318,7 @@ export default {
               invitedChildren:Number.isInteger(x.invitedChildren)?x.invitedChildren:0,
               rsvp:['yes','no','pending'].includes(x.rsvp)?x.rsvp:'pending',
               adults:Number.isInteger(x.adults)?x.adults:undefined,children:Number.isInteger(x.children)?x.children:undefined,
-              tableId:String(x.tableId||'').slice(0,80),updatedAt:typeof x.updatedAt==='string'?x.updatedAt:prior?.updatedAt||null,
+              tableId:String(x.tableId||'').slice(0,80),updatedAt:typeof x.updatedAt==='string'?x.updatedAt:null,
               source:x.source==='self-rsvp'||prior?.source==='self-rsvp'?'self-rsvp':undefined,
               needsReview:typeof x.needsReview==='boolean'?x.needsReview:!!prior?.needsReview};
             if(prior?.updatedAt&&(!out.updatedAt||prior.updatedAt>out.updatedAt)){
