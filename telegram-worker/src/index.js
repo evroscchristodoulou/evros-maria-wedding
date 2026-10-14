@@ -16,7 +16,7 @@ export default {
         const key='wedding:public:announcements:v1';
         if(request.method==='GET'){
           const stored=await env.SUBSCRIBERS.get(key,'json');
-          return json({announcements:Array.isArray(stored?.announcements)?stored.announcements:[],updatedAt:stored?.updatedAt||null});
+          return json({announcements:Array.isArray(stored?.announcements)?stored.announcements.filter(a=>a.published===true):[],updatedAt:stored?.updatedAt||null});
         }
         if(!env.ANNOUNCEMENTS_ADMIN_KEY || request.headers.get('Authorization')!=='Bearer '+env.ANNOUNCEMENTS_ADMIN_KEY)return json({error:'Invalid publishing key'},401);
         const raw=await request.text();if(raw.length>30000)return json({error:'Too large'},413);
