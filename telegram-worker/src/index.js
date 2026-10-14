@@ -124,6 +124,37 @@ export default {
         if(!plan?.published)return json({published:false,tables:[]});
         return json({published:true,tables:plan.tables.map(t=>({id:t.id,name:t.name,capacity:t.capacity})),guests:plan.guests.filter(g=>g.rsvp==='yes'&&g.tableId&&plan.tables.some(t=>t.id===g.tableId)).map(g=>({name:g.name,partySize:g.partySize,tableId:g.tableId}))});
       }
+      // Shared TEST checklist. Per-task KV records avoid replacing the whole checklist.
+      // No authentication yet: keep this endpoint free of sensitive information.
+      if(url.pathname==='/wedding/checklist' && (request.method==='GET'||request.method==='POST')){
+        const prefix='wedding:test:checklist:';
+        if(request.method==='GET'){
+          const entries=[];let cursor;
+          do{
+            const page=await env.SUBSCRIBERS.list({prefix,cursor,limit:100});
+            const batch=await Promise.all(page.keys.map(k=>env.SUBSCRIBERS.get(k.name,'json')));
+            for(const entry of batch)if(entry)entries.push(entry);
+            cursor=page.list_complete?undefined:page.cursor;
+          }while(cursor&&entries.length<1500);
+          return json({entries,testMode:true});
+        }
+        const raw=await request.text();
+        if(raw.length>95000)return json({error:'Request too large'},413);
+        let body;try{body=JSON.parse(raw)}catch{return json({error:'Invalid JSON'},400)}
+        const operations=body?.operations;
+        if(!Array.isArray(operations)||operations.length<1||operations.length>50)return json({error:'Invalid operations'},400);
+        const idOK=v=>typeof v==='string'&&v.length>0&&v.length<=90&&/^[a-zA-Z0-9_-]+$/.test(v);
+        const valid=operations.every(op=>op&&idOK(op.id)&&(
+          op.type==='delete'||(op.type==='upsert'&&typeof op.name==='string'&&op.name.trim().length>0&&op.name.length<=180&&typeof op.done==='boolean'&&typeof op.due==='string'&&(op.due===''||/^\d{4}-\d{2}-\d{2}$/.test(op.due))
+          )));
+        if(!valid)return json({error:'Invalid task data'},400);
+        for(const op of operations){
+          const record=op.type==='delete'?{id:op.id,deleted:true,updatedAt:new Date().toISOString()}:{id:op.id,name:op.name.trim(),due:op.due,done:op.done,deleted:false,updatedAt:new Date().toISOString()};
+          await env.SUBSCRIBERS.put(prefix+op.id,JSON.stringify(record));
+        }
+        return json({ok:true,count:operations.length});
+      }
+
       // Wedding invitation follow-up metadata is stored separately from the guest plan.
       // No messages are sent by the server; staff record invitations/reminders manually.
       if(url.pathname==='/wedding/rsvp-followup' && (request.method==='GET'||request.method==='POST')){
