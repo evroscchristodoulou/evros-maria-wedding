@@ -124,6 +124,35 @@ export default {
         if(!plan?.published)return json({published:false,tables:[]});
         return json({published:true,tables:plan.tables.map(t=>({id:t.id,name:t.name,capacity:t.capacity})),guests:plan.guests.filter(g=>g.rsvp==='yes'&&g.tableId&&plan.tables.some(t=>t.id===g.tableId)).map(g=>({name:g.name,partySize:g.partySize,tableId:g.tableId}))});
       }
+      // Wedding invitation follow-up metadata is stored separately from the guest plan.
+      // No messages are sent by the server; staff record invitations/reminders manually.
+      if(url.pathname==='/wedding/rsvp-followup' && (request.method==='GET'||request.method==='POST')){
+        const prefix='wedding:followup:';
+        if(request.method==='GET'){
+          const records={};let cursor;
+          do{
+            const page=await env.SUBSCRIBERS.list({prefix,cursor,limit:100});
+            for(const item of page.keys){
+              const entry=await env.SUBSCRIBERS.get(item.name,'json');
+              if(entry)records[item.name.slice(prefix.length)]=entry;
+            }
+            cursor=page.list_complete?undefined:page.cursor;
+          }while(cursor&&Object.keys(records).length<1500);
+          return json({records});
+        }
+        const d=await request.json().catch(()=>null);
+        if(!d||typeof d.id!=='string'||d.id.length>80||!['invited','reminded','clear-invited','clear-reminded'].includes(d.action))return json({error:'Invalid follow-up update'},400);
+        const plan=await env.SUBSCRIBERS.get('wedding:test:guest-plan','json')||{guests:[]};
+        if(!plan.guests.some(g=>g.id===d.id))return json({error:'Guest not found'},404);
+        const key=prefix+d.id,entry=await env.SUBSCRIBERS.get(key,'json')||{invitationSentAt:null,lastReminderAt:null,reminderCount:0};
+        const now=new Date().toISOString();
+        if(d.action==='invited')entry.invitationSentAt=now;
+        if(d.action==='reminded'){entry.lastReminderAt=now;entry.reminderCount=Math.min(9999,(Number(entry.reminderCount)||0)+1)}
+        if(d.action==='clear-invited')entry.invitationSentAt=null;
+        if(d.action==='clear-reminded'){entry.lastReminderAt=null;entry.reminderCount=0}
+        await env.SUBSCRIBERS.put(key,JSON.stringify(entry));
+        return json({ok:true,entry});
+      }
       if(url.pathname==='/wedding/guest-plan'){
         const key='wedding:test:guest-plan';
         if(request.method==='GET')return json({plan:await env.SUBSCRIBERS.get(key,'json')||{tables:[],guests:[],published:false}});
