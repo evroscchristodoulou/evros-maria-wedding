@@ -29,6 +29,7 @@ export default {
         const plan=await env.SUBSCRIBERS.get('wedding:test:guest-plan','json')||{tables:[],guests:[],published:false};
         if(!Array.isArray(plan.guests))plan.guests=[];
         if(!Array.isArray(plan.tables))plan.tables=[];
+        if(typeof plan.revision!=='string'||!plan.revision)plan.revision='legacy-v0';
         const responses=await collectedRecords('wedding:invitation:reply:');
         const replyById=new Map(responses.filter(r=>r&&typeof r.id==='string').map(r=>[r.id,r]));
         for(const guest of plan.guests){
@@ -314,8 +315,11 @@ export default {
           const d=await request.json().catch(()=>null);
           if(!d||!Array.isArray(d.guests)||!Array.isArray(d.tables)||d.guests.length>1000||d.tables.length>100)return json({error:'Invalid guest plan'},400);
           const previous=await effectiveGuestPlan();
+          if(typeof d.revision!=='string'||d.revision!==previous.revision)
+            return json({error:'Guest list changed. Refresh before saving to prevent losing RSVP responses.',code:'STALE_GUEST_PLAN'},409);
           const oldById=new Map(previous.guests.map(x=>[x.id,x]));
           const deleted=new Set(Array.isArray(d.deletedGuestIds)?d.deletedGuestIds.filter(x=>typeof x==='string'&&x.length<=80):[]);
+          const deletedTables=new Set(Array.isArray(d.deletedTableIds)?d.deletedTableIds.filter(x=>typeof x==='string'&&x.length<=80):[]);
           const guests=d.guests.map(x=>{
             const prior=oldById.get(x.id);
             const out={id:String(x.id||'').slice(0,80),name:String(x.name||'').trim().slice(0,100),partySize:Number(x.partySize),
@@ -334,18 +338,23 @@ export default {
             return out;
           });
           const guestIds=new Set(guests.map(g=>g.id));
-          // Keep independently submitted RSVPs that a stale administrator tab has not seen.
+          // Keep ALL existing guests unless an explicit deletion was requested.
           for(const record of previous.guests){
-            if(record.source==='self-rsvp'&&!guestIds.has(record.id)&&!deleted.has(record.id)){
+            if(!guestIds.has(record.id)&&!deleted.has(record.id)){
               guests.push(record);guestIds.add(record.id);
             }
           }
           if(guests.length>1000)return json({error:'Too many guests'},400);
           if(guests.some(x=>!x.id||!x.name||!Number.isInteger(x.partySize)||x.partySize<1||x.partySize>30||x.invitedAdults<0||x.invitedChildren<0||x.invitedAdults+x.invitedChildren!==x.partySize)||new Set(guests.map(x=>x.id)).size!==guests.length)return json({error:'Invalid guest records'},400);
           const tables=d.tables.map(x=>({id:String(x.id||'').slice(0,80),name:String(x.name||'').trim().slice(0,80),capacity:Number(x.capacity)}));
+          const tableIds=new Set(tables.map(x=>x.id));
+          for(const table of previous.tables){
+            if(!tableIds.has(table.id)&&!deletedTables.has(table.id)){tables.push(table);tableIds.add(table.id)}
+          }
+          if(tables.length>100)return json({error:'Too many tables'},400);
           if(tables.some(x=>!x.id||!x.name||!Number.isInteger(x.capacity)||x.capacity<1||x.capacity>50))return json({error:'Invalid tables'},400);
           for(const table of tables)if(guests.filter(x=>x.tableId===table.id&&x.rsvp==='yes').reduce((n,x)=>n+invitedCount(x),0)>table.capacity)return json({error:'Table capacity exceeded'},400);
-          const saved={tables,guests,published:!!d.published};
+          const saved={tables,guests,published:!!d.published,revision:crypto.randomUUID()};
           await env.SUBSCRIBERS.put(key,JSON.stringify(saved));
           for(const id of deleted)if(id.startsWith('self-'))await env.SUBSCRIBERS.put('wedding:rsvp:ignored:'+id,'1');
           return json({ok:true,plan:await effectiveGuestPlan()});
@@ -370,6 +379,7 @@ export default {
         await env.SUBSCRIBERS.put('wedding:invitation:reply:'+guest.id,JSON.stringify(reply));
         guest.rsvp=d.attending?'yes':'no';guest.adults=adults;guest.children=children;guest.updatedAt=reply.updatedAt;
         if(!d.attending)guest.tableId='';
+        plan.revision=crypto.randomUUID();
         // The authoritative per-invitation record is already stored if this write races.
         await env.SUBSCRIBERS.put(key,JSON.stringify(plan));
         return json({ok:true,saved:true,updatedAt:reply.updatedAt});
