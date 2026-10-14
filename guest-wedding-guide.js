@@ -1,0 +1,39 @@
+(()=>{'use strict';
+const lang=()=>localStorage.getItem('wedding-lang')==='el'?'el':'en',t=(a,b)=>lang()==='el'?b:a;
+const topics=[
+['date','date when wedding saturday ποτε ημερομηνια γαμοσ','Saturday, 10 June 2028.','Σάββατο, 10 Ιουνίου 2028.','./calendar.html?open=1','Calendar','Ημερολόγιο'],
+['venue','where venue location address barnyards skarinou directions που τοποθεσια χωροσ σκαρινου χαρτησ','The Barnyards Venues, Skarinou, Cyprus. Open the map for directions.','The Barnyards Venues, Σκαρίνου, Κύπρος. Δείτε οδηγίες στον χάρτη.','https://www.google.com/maps/search/?api=1&query=The+BarnYards+Venues+Skarinou+Cyprus','Directions','Οδηγίες'],
+['rsvp','rsvp invitation confirm attend reply προσκληση επιβεβαιωση παρουσια','Please confirm attendance using our RSVP form.','Παρακαλούμε επιβεβαιώστε την παρουσία σας στη φόρμα RSVP.','./rsvp.html','Open RSVP','Άνοιγμα RSVP'],
+['schedule','time schedule ceremony reception timeline dinner ωρα προγραμμα τελετη δεξιωση','Check the published wedding schedule on our Timeline page.','Δείτε το δημοσιευμένο πρόγραμμα στη σελίδα «Πρόγραμμα».','./timeline.html','Schedule','Πρόγραμμα'],
+['seating','seating table seat τραπεζι θεση καθισμα','Seating information is available when the couple publishes the seating plan.','Οι θέσεις είναι διαθέσιμες όταν δημοσιευτεί το πλάνο τραπεζιών.','./seating.html','Seating','Τραπέζια'],
+['music','song music dj dance τραγουδι μουσικη χοροσ','Suggest a song through the song-request page.','Προτείνετε τραγούδι στη σελίδα μουσικών επιλογών.','./songs.html','Songs','Τραγούδια'],
+['photos','photo gallery picture φωτογραφια αλμπουμ','Visit our wedding photo gallery.','Δείτε το φωτογραφικό άλμπουμ του γάμου.','./gallery.html','Gallery','Άλμπουμ'],
+['weather','weather rain forecast καιροσ βροχη','Check the wedding weather page closer to the date.','Δείτε τη σελίδα καιρού πιο κοντά στον γάμο.','./wedding-weather.html','Weather','Καιρός']];
+const css=['#wg-root{position:fixed;bottom:15px;right:15px;z-index:9999;font:13px/1.6 Inter,Arial,sans-serif;color:#292622}',
+'#wg-root *{box-sizing:border-box}#wg-launch{background:#292622;color:white;border:1px solid #a9967e;border-radius:30px;padding:13px 17px;cursor:pointer;box-shadow:0 8px 25px #0002}',
+'#wg-panel{width:min(370px,calc(100vw - 30px));max-height:min(620px,calc(100dvh - 75px));display:flex;flex-direction:column;background:#fffdfa;border:1px solid #ded7cc;border-radius:12px;overflow:hidden;box-shadow:0 14px 40px #0002}',
+'#wg-panel[hidden],#wg-launch[hidden]{display:none}#wg-head{background:#292622;color:white;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}',
+'#wg-title{font:400 24px Cormorant Garamond,Georgia,serif}#wg-close{border:0;background:transparent;color:white;font-size:24px;cursor:pointer}',
+'#wg-history{padding:14px;overflow:auto;display:grid;align-content:start;gap:10px;min-height:140px;max-height:300px}',
+'.wg-msg{padding:10px 12px;border-radius:10px;font-size:12px;max-width:94%;overflow-wrap:anywhere}.wg-msg.bot{background:#f3eee5;justify-self:start}.wg-msg.user{background:#292622;color:white;justify-self:end}',
+'.wg-msg a{display:inline-block;margin-top:7px;padding:5px 10px;border:1px solid #b7a48a;border-radius:18px;background:white;color:#292622;text-decoration:none;font-size:11px}',
+'#wg-choices{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 12px}#wg-choices button{border:1px solid #ded7cc;border-radius:18px;background:transparent;padding:6px 10px;font-size:11px;cursor:pointer}',
+'#wg-form{display:flex;gap:7px;padding:10px;border-top:1px solid #ded7cc}#wg-input{min-width:0;flex:1;padding:10px;border:1px solid #ded7cc;border-radius:6px;font:12px Inter,Arial,sans-serif}',
+'#wg-send{background:#292622;color:white;border:0;border-radius:6px;padding:9px 13px;cursor:pointer}#wg-note{font-size:10px;color:#82766b;padding:0 14px 10px}'].join('');
+const style=document.createElement('style');style.textContent=css;document.head.append(style);
+const root=document.createElement('div');root.id='wg-root';document.body.append(root);
+function make(tag,id,parent){const el=document.createElement(tag);if(id)el.id=id;parent.append(el);return el}
+const launch=make('button','wg-launch',root),panel=make('section','wg-panel',root);launch.type='button';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Wedding guide');
+const head=make('div','wg-head',panel),title=make('strong','wg-title',head),close=make('button','wg-close',head);close.type='button';close.textContent='×';
+const history=make('div','wg-history',panel);history.setAttribute('role','log');history.setAttribute('aria-live','polite');
+const choices=make('div','wg-choices',panel),form=make('form','wg-form',panel),input=make('input','wg-input',form),send=make('button','wg-send',form),note=make('div','wg-note',panel);
+input.required=true;input.maxLength=350;send.textContent='➤';send.type='submit';
+const norm=s=>String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ς/g,'σ');
+function message(value,role,topic){const div=make('div','',history);div.className='wg-msg '+role;div.textContent=value;if(topic){const a=make('a','',div);a.href=topic[5];a.textContent=t(topic[6],topic[7])+' ↗';if(topic[5].startsWith('https:')){a.target='_blank';a.rel='noopener noreferrer'}}history.scrollTop=history.scrollHeight}
+function ask(q){message(q,'user');let best=null,score=0;const question=norm(q);for(const topic of topics){let n=0;for(const word of topic[1].split(' '))if(question.includes(norm(word)))n+=word.length>5?3:2;if(n>score){score=n;best=topic}}if(score>=2&&best)message(t(best[2],best[3]),'bot',best);else message(t('I can help with the date, venue, RSVP, schedule, seating, songs, photos or weather. Try a suggestion below.','Μπορώ να βοηθήσω με ημερομηνία, χώρο, RSVP, πρόγραμμα, τραπέζια, μουσική, φωτογραφίες ή καιρό.'),'bot')}
+function translate(){launch.textContent=t('✧ Ask about our wedding','✧ Ρωτήστε για τον γάμο');title.textContent=t('Wedding Guide','Οδηγός Γάμου');input.placeholder=t('Ask a question…','Γράψτε μια ερώτηση…');note.textContent=t('Public wedding information only.','Μόνο δημόσιες πληροφορίες γάμου.');choices.replaceChildren();for(const [en,el] of [['Where is the venue?','Πού είναι ο χώρος;'],['How do I RSVP?','Πώς απαντώ στο RSVP;'],['Wedding schedule','Πρόγραμμα γάμου']]){const b=make('button','',choices);b.type='button';b.textContent=t(en,el);b.onclick=()=>ask(t(en,el))}}
+let started=false;function toggle(open){panel.hidden=!open;launch.hidden=open;if(open){translate();if(!started){message(t('Hello! How can I help with Evros & Maria’s wedding?','Γεια σας! Πώς μπορώ να βοηθήσω με τον γάμο του Έβρου και της Μαρίας;'),'bot');started=true}input.focus()}}
+launch.onclick=()=>toggle(true);close.onclick=()=>toggle(false);form.onsubmit=e=>{e.preventDefault();const q=input.value.trim();if(!q)return;input.value='';ask(q)};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)toggle(false)});
+document.getElementById('language')?.addEventListener('click',()=>setTimeout(translate,0));translate();
+})();
