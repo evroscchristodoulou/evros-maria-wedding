@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const lang=()=>localStorage.getItem('wedding-lang')==='el'?'el':'en',t=(a,b)=>lang()==='el'?b:a;
 const topics=[
-['date','date when wedding saturday ποτε ημερομηνια γαμοσ','Saturday, 10 June 2028.','Σάββατο, 10 Ιουνίου 2028.','./calendar.html?open=1','Calendar','Ημερολόγιο'],
+['date','date when saturday june 2028 ποτε ημερομηνια ιουνιου','Saturday, 10 June 2028.','Σάββατο, 10 Ιουνίου 2028.','./calendar.html?open=1','Calendar','Ημερολόγιο'],
 ['venue','where venue location address barnyards skarinou directions που τοποθεσια χωροσ σκαρινου χαρτησ','The Barnyards Venues, Skarinou, Cyprus. Open the map for directions.','The Barnyards Venues, Σκαρίνου, Κύπρος. Δείτε οδηγίες στον χάρτη.','https://www.google.com/maps/search/?api=1&query=The+BarnYards+Venues+Skarinou+Cyprus','Directions','Οδηγίες'],
 ['rsvp','rsvp invitation confirm attend reply προσκληση επιβεβαιωση παρουσια','Please confirm attendance using our RSVP form.','Παρακαλούμε επιβεβαιώστε την παρουσία σας στη φόρμα RSVP.','./rsvp.html','Open RSVP','Άνοιγμα RSVP'],
 ['schedule','time schedule ceremony reception timeline dinner ωρα προγραμμα τελετη δεξιωση','Check the published wedding schedule on our Timeline page.','Δείτε το δημοσιευμένο πρόγραμμα στη σελίδα «Πρόγραμμα».','./timeline.html','Schedule','Πρόγραμμα'],
