@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#faf9f7"><title>Planning Control Centre · Evros & Maria</title>
+<link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="manifest" href="./manifest.webmanifest">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#faf9f7;--ink:#292622;--muted:#766f66;--line:#ded9d0;--gold:#9d866a}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:300 14px/1.65 Inter,Arial,sans-serif}
+a{color:inherit}button{cursor:pointer;font:inherit}button:disabled{opacity:.5;cursor:not-allowed}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px max(20px,calc((100vw - 1160px)/2));border-bottom:1px solid var(--line)}
+.brand{font:400 27px 'Cormorant Garamond',serif;text-decoration:none}
+#language,.outline{border:1px solid #bdb5aa;background:transparent;padding:9px 14px;color:inherit;font-size:12px}
+nav{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:13px 20px;border-bottom:1px solid var(--line)}
+nav a{padding:9px 12px;border:1px solid var(--line);font:400 11px Inter,sans-serif;text-decoration:none}
+nav a[aria-current]{background:var(--ink);color:white}
+main{max-width:1160px;margin:auto;padding:50px 20px 95px}
+.eyebrow{font-size:10px;letter-spacing:.23em;color:var(--muted)}
+h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400}h1{font-size:clamp(43px,6vw,68px);line-height:1.08;margin:12px 0 15px}h2{font-size:34px;margin:0}h3{font-size:25px;margin:0 0 8px}
+p{color:var(--muted)}.head-row{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.notice{font-size:12px;background:#f5f0e6;border-left:3px solid #b7a082;padding:12px 16px;margin:22px 0}
+.status{font-size:12px;color:var(--muted);min-height:22px}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0 30px}
+.metric{border:1px solid var(--line);background:#fffdfa;padding:20px 18px;min-width:0;text-decoration:none;display:block}
+.metric strong{font:400 40px 'Cormorant Garamond',serif;display:block;line-height:1.2;overflow-wrap:anywhere}
+.metric span{font-size:11px;color:var(--muted)}.metric small{display:block;font-size:10px;margin-top:6px;color:var(--gold)}
+.columns{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px;align-items:start}
+.panel{border:1px solid var(--line);background:#fffdfa;padding:23px;margin-bottom:18px;min-width:0}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.panel-head a{font-size:11px;text-decoration:none;border-bottom:1px solid var(--gold);white-space:nowrap}
+.item{display:flex;align-items:start;gap:12px;padding:12px 0;border-top:1px solid #ebe7e0}
+.item:first-child{border-top:0}.marker{width:8px;height:8px;border-radius:50%;background:#b08f72;margin-top:8px;flex-shrink:0}
+.marker.good{background:#76917a}.marker.urgent{background:#b96d5f}
+.item-text{min-width:0;flex:1}.item-text strong{display:block;font-size:12px;font-weight:500;overflow-wrap:anywhere}
+.item-text small{font-size:11px;color:var(--muted);display:block}.item a{font-size:11px;white-space:nowrap;margin-top:2px}
+.empty{padding:15px 0;color:var(--muted);font-size:12px}
+.progress{height:8px;background:#e9e3da;overflow:hidden;margin:12px 0;border-radius:20px}.progress div{height:100%;background:#9c876c;transition:width .3s}
+.inline-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.mini{background:#f8f5ef;padding:14px}.mini strong{font:400 29px 'Cormorant Garamond',serif;display:block}.mini span{font-size:11px;color:var(--muted)}
+.quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.quick a{padding:14px 15px;border:1px solid var(--line);text-decoration:none;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.quick a:hover,.metric:hover{border-color:#b49b7b;background:#faf5eb}
+footer{text-align:center;border-top:1px solid var(--line);padding:30px;color:var(--muted);font-size:10px;letter-spacing:.15em}
+@media(max-width:850px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.columns{grid-template-columns:1fr}}
+@media(max-width:480px){.panel{padding:17px}.metrics{gap:9px}.metric{padding:15px 12px}.metric strong{font-size:32px}.quick{grid-template-columns:1fr}}
+</style></head><body>
+<header><a class="brand" href="./">E &amp; M</a><button id="language" type="button">ΕΛ / EN</button></header>
+<nav aria-label="Wedding management">
+<a href="./planning-centre.html" aria-current="page" data-en="Planning Centre" data-el="Κέντρο Οργάνωσης">Planning Centre</a>
+<a href="./dashboard.html" data-en="Dashboard" data-el="Πίνακας">Dashboard</a>
+<a href="./rsvp-followup.html" data-en="RSVP Follow-up" data-el="Παρακολούθηση RSVP">RSVP Follow-up</a>
+<a href="./guest-list.html" data-en="Guest List" data-el="Καλεσμένοι">Guest List</a>
+<a href="./seating-arrangement.html" data-en="Seating" data-el="Τραπέζια">Seating</a>
+<a href="./suppliers.html" data-en="Budget" data-el="Έξοδα">Budget</a>
+<a href="./planning-checklist.html" data-en="Checklist" data-el="Εργασίες">Checklist</a>
+</nav>
+<main>
+<div class="eyebrow">EVROS &amp; MARIA · 10.06.2028</div>
+<div class="head-row"><div><h1 data-en="Wedding Planning Centre." data-el="Κέντρο Οργάνωσης Γάμου.">Wedding Planning Centre.</h1><p data-en="Your guests, seating, payments and preparation deadlines in one place." data-el="Καλεσμένοι, τραπέζια, πληρωμές και προθεσμίες προετοιμασίας σε ένα μέρος.">Your guests, seating, payments and preparation deadlines in one place.</p></div><button id="refresh" class="outline" data-en="↻ Refresh data" data-el="↻ Ανανέωση δεδομένων">↻ Refresh data</button></div>
+<div class="notice" data-en="Planning preview: guest data and test budget load from Cloudflare; checklist tasks come from this device only. Management pages are not password-protected yet. Do not enter private or real financial data until access is secured." data-el="Δοκιμαστική οργάνωση: οι καλεσμένοι και ο δοκιμαστικός προϋπολογισμός φορτώνονται από το Cloudflare· οι εργασίες είναι μόνο σε αυτή τη συσκευή. Η διαχείριση δεν προστατεύεται ακόμη με κωδικό. Μην καταχωρείτε προσωπικά ή πραγματικά οικονομικά δεδομένα μέχρι να ασφαλιστεί.">Planning preview: guest data and test budget load from Cloudflare; checklist tasks come from this device only. Management pages are not password-protected yet. Do not enter private or real financial data until access is secured.</div>
+<div class="status" id="status" role="status" aria-live="polite"></div>
+<section class="metrics" aria-label="Planning overview">
+<a class="metric" href="./rsvp-followup.html"><strong id="pending">—</strong><span data-en="Awaiting RSVP" data-el="Αναμονή RSVP">Awaiting RSVP</span><small data-en="Follow up →" data-el="Υπενθυμίσεις →">Follow up →</small></a>
+<a class="metric" href="./seating-arrangement.html"><strong id="unassigned">—</strong><span data-en="Confirmed people without seats" data-el="Επιβεβαιωμένα άτομα χωρίς θέση">Confirmed people without seats</span><small data-en="Arrange tables →" data-el="Οργάνωση τραπεζιών →">Arrange tables →</small></a>
+<a class="metric" href="./planning-checklist.html"><strong id="tasks-open">—</strong><span data-en="Open tasks on this device" data-el="Εκκρεμείς εργασίες στη συσκευή">Open tasks on this device</span><small data-en="Open checklist →" data-el="Άνοιγμα εργασιών →">Open checklist →</small></a>
+<a class="metric" href="./payment-calendar.html"><strong id="payments-soon">—</strong><span data-en="Payments due in 30 days" data-el="Πληρωμές εντός 30 ημερών">Payments due in 30 days</span><small data-en="Payment calendar →" data-el="Ημερολόγιο πληρωμών →">Payment calendar →</small></a>
+</section>
+<div class="columns">
+<div>
+<section class="panel"><div class="panel-head"><h2 data-en="Needs your attention" data-el="Χρειάζεται προσοχή">Needs your attention</h2><a href="./planning-checklist.html" data-en="All tasks →" data-el="Όλες οι εργασίες →">All tasks →</a></div><div id="attention"></div></section>
+<section class="panel"><div class="panel-head"><h2 data-en="Upcoming payments" data-el="Επόμενες πληρωμές">Upcoming payments</h2><a href="./payment-calendar.html" data-en="Calendar →" data-el="Ημερολόγιο →">Calendar →</a></div><div id="payment-list"></div></section>
+<section class="panel"><div class="panel-head"><h2 data-en="Preparation deadlines" data-el="Προθεσμίες προετοιμασίας">Preparation deadlines</h2><a href="./planning-checklist.html" data-en="Manage →" data-el="Διαχείριση →">Manage →</a></div><div id="task-list"></div></section>
+</div>
+<div>
+<section class="panel"><div class="panel-head"><h2 data-en="Guest readiness" data-el="Ετοιμότητα καλεσμένων">Guest readiness</h2><a href="./rsvp-followup.html" data-en="Follow-up →" data-el="Υπενθυμίσεις →">Follow-up →</a></div>
+<div class="inline-stats"><div class="mini"><strong id="invited">—</strong><span data-en="Invitations" data-el="Προσκλήσεις">Invitations</span></div><div class="mini"><strong id="confirmed">—</strong><span data-en="Confirmed invitations" data-el="Επιβεβαιωμένες προσκλήσεις">Confirmed invitations</span></div><div class="mini"><strong id="declined">—</strong><span data-en="Declined" data-el="Αρνήθηκαν">Declined</span></div><div class="mini"><strong id="not-sent">—</strong><span data-en="Pending, not marked invited" data-el="Εκκρεμούν χωρίς αποστολή πρόσκλησης">Pending, not marked invited</span></div></div>
+<div class="progress"><div id="rsvp-bar" style="width:0"></div></div><p id="rsvp-note" style="font-size:12px"></p></section>
+<section class="panel"><div class="panel-head"><h2 data-en="Budget overview" data-el="Επισκόπηση εξόδων">Budget overview</h2><a href="./suppliers.html" data-en="Manage →" data-el="Διαχείριση →">Manage →</a></div>
+<div class="inline-stats"><div class="mini"><strong id="cost">—</strong><span data-en="Agreed costs" data-el="Συμφωνημένα έξοδα">Agreed costs</span></div><div class="mini"><strong id="paid">—</strong><span data-en="Paid" data-el="Πληρωμένα">Paid</span></div><div class="mini"><strong id="remaining">—</strong><span data-en="Remaining" data-el="Υπόλοιπο">Remaining</span></div><div class="mini"><strong id="supplier-count">—</strong><span data-en="Expense entries" data-el="Καταχωρίσεις εξόδων">Expense entries</span></div></div><p style="font-size:11px" data-en="Shared TEST budget, not actual wedding finances." data-el="Κοινός ΔΟΚΙΜΑΣΤΙΚΟΣ προϋπολογισμός, όχι πραγματικά οικονομικά γάμου.">Shared TEST budget, not actual wedding finances.</p></section>
+<section class="panel"><div class="panel-head"><h2 data-en="Checklist progress" data-el="Πρόοδος εργασιών">Checklist progress</h2><a href="./planning-checklist.html" data-en="Open →" data-el="Άνοιγμα →">Open →</a></div><strong id="task-progress">—</strong><div class="progress"><div id="task-bar" style="width:0"></div></div><p style="font-size:11px" data-en="Saved on this device; not synced across devices." data-el="Αποθηκευμένο στη συσκευή· δεν συγχρονίζεται μεταξύ συσκευών.">Saved on this device; not synced across devices.</p></section>
+<section class="panel"><h2 data-en="Quick access" data-el="Γρήγορη πρόσβαση">Quick access</h2><div class="quick">
+<a href="./guest-list.html" data-en="Guest list ↗" data-el="Καλεσμένοι ↗">Guest list ↗</a>
+<a href="./rsvp-followup.html" data-en="RSVP reminders ↗" data-el="Υπενθυμίσεις RSVP ↗">RSVP reminders ↗</a>
+<a href="./seating-arrangement.html" data-en="Seating plan ↗" data-el="Πλάνο τραπεζιών ↗">Seating plan ↗</a>
+<a href="./suppliers.html" data-en="Expenses ↗" data-el="Έξοδα ↗">Expenses ↗</a>
+<a href="./payment-calendar.html" data-en="Payment calendar ↗" data-el="Ημερολόγιο πληρωμών ↗">Payment calendar ↗</a>
+<a href="./planning-checklist.html" data-en="Preparation checklist ↗" data-el="Εργασίες προετοιμασίας ↗">Preparation checklist ↗</a>
+</div></section>
+</div></div>
+</main><footer>EVROS &amp; MARIA · 10.06.2028</footer>
+<script>
+const API='https://evros-maria-wedding.evros-christodoulou1995.workers.dev', $=id=>document.getElementById(id);
+let lang=localStorage.getItem('wedding-lang')==='el'?'el':'en',plan=null,followup=null,budget=null,guestError='',budgetError='';
+const t=(en,el)=>lang==='el'?el:en,fmt=n=>Number(n||0).toLocaleString(lang==='el'?'el-CY':'en-GB'),euro=n=>'€'+fmt(Math.round(Number(n||0)*100)/100);
+function today(){const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Nicosia',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const obj=Object.fromEntries(parts.map(p=>[p.type,p.value]));return obj.year+'-'+obj.month+'-'+obj.day}
+function daysUntil(date){if(!/^\d{4}-\d{2}-\d{2}$/.test(date||''))return null;const a=Date.parse(date+'T12:00:00Z'),b=Date.parse(today()+'T12:00:00Z');return Math.round((a-b)/86400000)}
+function dateText(d){if(!d)return t('No date','Χωρίς ημερομηνία');return new Intl.DateTimeFormat(lang==='el'?'el-CY':'en-GB',{dateStyle:'medium',timeZone:'UTC'}).format(new Date(d+'T12:00:00Z'))}
+function taskData(){try{const data=JSON.parse(localStorage.getItem('em-checklist-v1')||'null');if(Array.isArray(data))return data.filter(x=>x&&typeof x.name==='string');}catch{}return null}
+function addItem(root,title,sub,link,urgent=false){const row=document.createElement('div'),dot=document.createElement('i'),txt=document.createElement('div'),strong=document.createElement('strong'),small=document.createElement('small'),a=document.createElement('a');row.className='item';dot.className='marker'+(urgent?' urgent':'');txt.className='item-text';strong.textContent=title;small.textContent=sub;txt.append(strong,small);a.href=link;a.textContent=t('Open →','Άνοιγμα →');row.append(dot,txt,a);root.append(row)}
+function empty(root,en,el){const d=document.createElement('div');d.className='empty';d.textContent=t(en,el);root.append(d)}
+function paint(){
+ const tasks=taskData(),taskOpen=tasks?tasks.filter(x=>!x.done):null;
+ $('tasks-open').textContent=taskOpen?fmt(taskOpen.length):'—';
+ $('task-progress').textContent=tasks?fmt(tasks.filter(x=>x.done).length)+' / '+fmt(tasks.length)+' '+t('completed','ολοκληρώθηκαν'):t('Not started on this device','Δεν ξεκίνησε σε αυτή τη συσκευή');
+ $('task-bar').style.width=tasks&&tasks.length?100*tasks.filter(x=>x.done).length/tasks.length+'%':'0%';
+ const attention=$('attention'),taskList=$('task-list'),payments=$('payment-list');attention.replaceChildren();taskList.replaceChildren();payments.replaceChildren();
+ if(plan){const guests=plan.guests,confirmed=guests.filter(g=>g.rsvp==='yes'),pending=guests.filter(g=>g.rsvp!=='yes'&&g.rsvp!=='no'),declined=guests.filter(g=>g.rsvp==='no');const tableIds=new Set((plan.tables||[]).map(x=>x.id));const without=confirmed.filter(g=>!g.tableId||!tableIds.has(g.tableId));const unassigned=without.reduce((n,g)=>n+Math.max(1,Number(g.partySize)||1),0);const unsent=followup?pending.filter(g=>!followup[g.id]?.invitationSentAt).length:null;
+ $('pending').textContent=fmt(pending.length);$('unassigned').textContent=fmt(unassigned);$('invited').textContent=fmt(guests.length);$('confirmed').textContent=fmt(confirmed.length);$('declined').textContent=fmt(declined.length);$('not-sent').textContent=unsent===null?'—':fmt(unsent);$('rsvp-bar').style.width=guests.length?100*(confirmed.length+declined.length)/guests.length+'%':'0%';$('rsvp-note').textContent=fmt(confirmed.length+declined.length)+' / '+fmt(guests.length)+' '+t('invitations responded','προσκλήσεις απαντήθηκαν');
+ if(pending.length)addItem(attention,t(fmt(pending.length)+' invitations awaiting RSVP',fmt(pending.length)+' προσκλήσεις σε αναμονή'),t('Send personal reminders','Στείλτε προσωπικές υπενθυμίσεις'),'./rsvp-followup.html');
+ if(unsent)addItem(attention,t(fmt(unsent)+' pending invitations not marked sent',fmt(unsent)+' εκκρεμείς προσκλήσεις χωρίς καταγεγραμμένη αποστολή'),t('Check invitation status','Ελέγξτε την κατάσταση πρόσκλησης'),'./rsvp-followup.html');
+ if(unassigned)addItem(attention,t(fmt(unassigned)+' confirmed people without tables',fmt(unassigned)+' επιβεβαιωμένα άτομα χωρίς τραπέζι'),t('Assign seating','Ορίστε θέσεις'),'./seating-arrangement.html');
+ }else{for(const id of ['pending','unassigned','invited','confirmed','declined','not-sent'])$(id).textContent='—';$('rsvp-note').textContent=t('Guest data unavailable','Τα δεδομένα καλεσμένων δεν είναι διαθέσιμα');$('rsvp-bar').style.width='0%'}
+ if(tasks){const overdue=taskOpen.filter(x=>{const d=daysUntil(x.due);return d!==null&&d<0});const soon=taskOpen.filter(x=>{const d=daysUntil(x.due);return d!==null&&d>=0&&d<=30});if(overdue.length)addItem(attention,t(fmt(overdue.length)+' overdue preparation tasks',fmt(overdue.length)+' εκπρόθεσμες εργασίες'),t('Review overdue deadlines','Ελέγξτε τις εκπρόθεσμες εργασίες'),'./planning-checklist.html',true);if(soon.length)addItem(attention,t(fmt(soon.length)+' tasks due within 30 days',fmt(soon.length)+' εργασίες εντός 30 ημερών'),t('Review upcoming deadlines','Ελέγξτε τις επόμενες προθεσμίες'),'./planning-checklist.html');
+ for(const x of [...taskOpen].filter(x=>daysUntil(x.due)!==null).sort((a,b)=>a.due.localeCompare(b.due)).slice(0,5)){const days=daysUntil(x.due);addItem(taskList,x.name,dateText(x.due)+' · '+(days<0?t('Overdue','Εκπρόθεσμο'):days===0?t('Today','Σήμερα'):t('In ','Σε ')+days+' '+t('days','ημέρες')),'./planning-checklist.html',days<0)}
+ if(!taskList.children.length)empty(taskList,'No open tasks with deadlines on this device.','Δεν υπάρχουν εκκρεμείς εργασίες με προθεσμία σε αυτή τη συσκευή.');
+ }else empty(taskList,'No checklist saved on this device yet. Open the checklist to begin.','Δεν υπάρχει λίστα εργασιών σε αυτή τη συσκευή. Ανοίξτε τις εργασίες για να ξεκινήσετε.');
+ if(budget){const total=budget.reduce((n,s)=>n+(Number(s.cost)||0),0),paid=budget.reduce((n,s)=>n+(Array.isArray(s.payments)?s.payments.reduce((v,p)=>v+(Number(p.amount)||0),0):0),0),due=budget.filter(s=>{const days=daysUntil(s.due);const balance=(Number(s.cost)||0)-(Array.isArray(s.payments)?s.payments.reduce((v,p)=>v+(Number(p.amount)||0),0):0);return balance>0&&days!==null&&days>=0&&days<=30});const overdue=budget.filter(s=>{const days=daysUntil(s.due);const balance=(Number(s.cost)||0)-(Array.isArray(s.payments)?s.payments.reduce((v,p)=>v+(Number(p.amount)||0),0):0);return balance>0&&days!==null&&days<0});$('cost').textContent=euro(total);$('paid').textContent=euro(paid);$('remaining').textContent=euro(total-paid);$('supplier-count').textContent=fmt(budget.length);$('payments-soon').textContent=fmt(due.length);
+ if(due.length)addItem(attention,t(fmt(due.length)+' payments due in the next 30 days',fmt(due.length)+' πληρωμές εντός 30 ημερών'),t('Check due dates and balances','Ελέγξτε ημερομηνίες και υπόλοιπα'),'./payment-calendar.html');
+ if(overdue.length)addItem(attention,t(fmt(overdue.length)+' overdue payment deadlines',fmt(overdue.length)+' εκπρόθεσμες πληρωμές'),t('Check outstanding balances','Ελέγξτε τα υπόλοιπα'),'./payment-calendar.html',true);
+ const ordered=[...budget].filter(s=>{const days=daysUntil(s.due);const remaining=(Number(s.cost)||0)-(Array.isArray(s.payments)?s.payments.reduce((n,p)=>n+(Number(p.amount)||0),0):0);return days!==null&&remaining>0}).sort((a,b)=>a.due.localeCompare(b.due)).slice(0,5);
+ for(const s of ordered){const rem=(Number(s.cost)||0)-(Array.isArray(s.payments)?s.payments.reduce((n,p)=>n+(Number(p.amount)||0),0):0);addItem(payments,s.name,euro(rem)+' · '+dateText(s.due)+(daysUntil(s.due)<0?' · '+t('Overdue','Εκπρόθεσμο'):''),'./suppliers.html',daysUntil(s.due)<0)}
+ if(!payments.children.length)empty(payments,'No unpaid expenses with a payment deadline.','Δεν υπάρχουν ανεξόφλητα έξοδα με ημερομηνία πληρωμής.');
+ }else{for(const id of ['cost','paid','remaining','supplier-count','payments-soon'])$(id).textContent='—';empty(payments,'Shared test budget unavailable.','Ο κοινός δοκιμαστικός προϋπολογισμός δεν είναι διαθέσιμος.')}
+ if(!attention.children.length)empty(attention,plan&&budget?t('No urgent items identified from available records.','Δεν εντοπίστηκαν επείγοντα θέματα στα διαθέσιμα δεδομένα.'):t('No alerts from available data; some sources may be unavailable.','Δεν υπάρχουν ειδοποιήσεις στα διαθέσιμα δεδομένα· κάποιες πηγές ίσως δεν είναι διαθέσιμες.'),'');
+}
+async function load(){const btn=$('refresh');btn.disabled=true;$('status').textContent=t('Refreshing cloud data…','Ανανέωση δεδομένων cloud…');const requests=[fetch(API+'/wedding/guest-plan',{cache:'no-store'}),fetch(API+'/wedding/rsvp-followup',{cache:'no-store'}),fetch(API+'/wedding/budget-shared',{cache:'no-store'})];const results=await Promise.allSettled(requests.map(async p=>{const r=await p;if(!r.ok)throw Error('HTTP '+r.status);return r.json()}));plan=results[0].status==='fulfilled'&&Array.isArray(results[0].value.plan?.guests)?results[0].value.plan:null;followup=results[1].status==='fulfilled'?results[1].value.records||null:null;budget=results[2].status==='fulfilled'&&Array.isArray(results[2].value.data)?results[2].value.data:null;const unavailable=[!plan&&!followup,!budget].filter(Boolean).length;$('status').textContent=unavailable?t('Some cloud sources are unavailable; unavailable metrics show —.','Κάποιες πηγές cloud δεν είναι διαθέσιμες· εμφανίζεται —.'):t('Updated from Cloudflare · ','Ενημερώθηκε από Cloudflare · ')+new Intl.DateTimeFormat(lang==='el'?'el-CY':'en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Nicosia'}).format(new Date());btn.disabled=false;paint()}
+function translate(){document.documentElement.lang=lang;document.querySelectorAll('[data-en]').forEach(el=>el.textContent=el.dataset[lang]);paint()}
+$('language').onclick=()=>{lang=lang==='en'?'el':'en';localStorage.setItem('wedding-lang',lang);translate()};
+$('refresh').onclick=load;window.addEventListener('focus',()=>{if(plan||budget)load()});window.addEventListener('storage',e=>{if(e.key==='em-checklist-v1')paint()});translate();load();
+</script></body></html>
