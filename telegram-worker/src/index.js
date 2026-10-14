@@ -11,6 +11,70 @@ export default {
       if(!env.SUBSCRIBERS)return json({error:'Storage unavailable'},503);
       if(request.method!=='GET' && request.headers.get('Origin')!==origin)return json({error:'Forbidden'},403);
 
+      // RSVP reconciliation: separate reply keys are authoritative even if an older
+      // open guest-management tab tries to save a stale copy of the guest plan.
+      const invitedCount=g=>g.rsvp==='yes'&&Number.isInteger(g.adults)&&Number.isInteger(g.children)&&g.adults+g.children>0?g.adults+g.children:Math.max(1,Number(g.partySize)||1);
+      const normalizedGuestName=name=>String(name||'').trim().toLocaleLowerCase('el').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');
+      async function collectedRecords(prefix,max=1200){
+        const records=[];let cursor;
+        do{
+          const page=await env.SUBSCRIBERS.list({prefix,cursor,limit:100});
+          const batch=await Promise.all(page.keys.map(k=>env.SUBSCRIBERS.get(k.name,'json')));
+          for(const entry of batch)if(entry)records.push(entry);
+          cursor=page.list_complete?undefined:page.cursor;
+        }while(cursor&&records.length<max);
+        return records;
+      }
+      async function effectiveGuestPlan(){
+        const plan=await env.SUBSCRIBERS.get('wedding:test:guest-plan','json')||{tables:[],guests:[],published:false};
+        if(!Array.isArray(plan.guests))plan.guests=[];
+        if(!Array.isArray(plan.tables))plan.tables=[];
+        const responses=await collectedRecords('wedding:invitation:reply:');
+        const replyById=new Map(responses.filter(r=>r&&typeof r.id==='string').map(r=>[r.id,r]));
+        for(const guest of plan.guests){
+          const reply=replyById.get(guest.id);
+          if(reply&&(!guest.updatedAt||reply.updatedAt>guest.updatedAt)){
+            guest.rsvp=reply.attending?'yes':'no';
+            guest.adults=reply.adults;
+            guest.children=reply.children;
+            guest.updatedAt=reply.updatedAt;
+            if(!reply.attending)guest.tableId='';
+          }
+        }
+        // Historic or unlisted guest replies were previously kept in a separate KV
+        // collection and never appeared in the seating editor. Surface them for review.
+        const legacy=await collectedRecords('wedding:rsvp:');
+        for(const reply of legacy){
+          if(!reply||typeof reply.id!=='string'||typeof reply.name!=='string')continue;
+          const id='self-'+reply.id;
+          if(await env.SUBSCRIBERS.get('wedding:rsvp:ignored:'+id))continue;
+          const name=reply.name.trim();
+          if(!name)continue;
+          let guest=plan.guests.find(g=>g.id===id);
+          if(!guest){
+            const matches=plan.guests.filter(g=>normalizedGuestName(g.name)===normalizedGuestName(name)&&g.source!=='self-rsvp');
+            // Never merge an ambiguous or oversized self-submission into an invitation.
+            guest=matches.length===1&&reply.adults<=matches[0].invitedAdults&&reply.children<=matches[0].invitedChildren?matches[0]:null;
+          }
+          if(guest){
+            if(!guest.updatedAt||String(reply.updatedAt||reply.createdAt||'')>guest.updatedAt){
+              guest.rsvp=reply.attending?'yes':'no';
+              guest.adults=reply.adults;
+              guest.children=reply.children;
+              guest.updatedAt=reply.updatedAt||reply.createdAt;
+              if(!reply.attending)guest.tableId='';
+            }
+            continue;
+          }
+          const adults=Number(reply.adults)||0,children=Number(reply.children)||0;
+          if(adults<0||children<0||adults+children>30)continue;
+          plan.guests.push({id,name,partySize:Math.max(1,adults+children),invitedAdults:Math.max(1,adults+children)-children,
+            invitedChildren:children,rsvp:reply.attending?'yes':'no',adults:reply.attending?adults:0,children:reply.attending?children:0,
+            tableId:'',updatedAt:reply.updatedAt||reply.createdAt||new Date().toISOString(),source:'self-rsvp',needsReview:true});
+        }
+        return plan;
+      }
+
       // Wedding predictions: public anonymous nickname entries, admin-only result reveal.
       if(url.pathname==='/wedding/predictions' && ['GET','POST'].includes(request.method)){
         const configKey='wedding:predictions:config:v1';
@@ -174,9 +238,9 @@ export default {
       // RSVP entries are stored in KV. A private edit token is returned only to the submitting guest.
       // TEST MODE: unauthenticated guest management. Enable authentication before real guest data.
       if(url.pathname==='/wedding/seating/public' && request.method==='GET'){
-        const plan=await env.SUBSCRIBERS.get('wedding:test:guest-plan','json');
+        const plan=await effectiveGuestPlan();
         if(!plan?.published)return json({published:false,tables:[]});
-        return json({published:true,tables:plan.tables.map(t=>({id:t.id,name:t.name,capacity:t.capacity})),guests:plan.guests.filter(g=>g.rsvp==='yes'&&g.tableId&&plan.tables.some(t=>t.id===g.tableId)).map(g=>({name:g.name,partySize:g.partySize,tableId:g.tableId}))});
+        return json({published:true,tables:plan.tables.map(t=>({id:t.id,name:t.name,capacity:t.capacity})),guests:plan.guests.filter(g=>g.rsvp==='yes'&&g.tableId&&plan.tables.some(t=>t.id===g.tableId)).map(g=>({name:g.name,partySize:invitedCount(g),tableId:g.tableId}))});
       }
       // Shared TEST checklist. Per-task KV records avoid replacing the whole checklist.
       // No authentication yet: keep this endpoint free of sensitive information.
@@ -240,37 +304,70 @@ export default {
       }
       if(url.pathname==='/wedding/guest-plan'){
         const key='wedding:test:guest-plan';
-        if(request.method==='GET')return json({plan:await env.SUBSCRIBERS.get(key,'json')||{tables:[],guests:[],published:false}});
+        if(request.method==='GET')return json({plan:await effectiveGuestPlan()});
         if(request.method==='POST'){
           const d=await request.json().catch(()=>null);
           if(!d||!Array.isArray(d.guests)||!Array.isArray(d.tables)||d.guests.length>1000||d.tables.length>100)return json({error:'Invalid guest plan'},400);
-          const old=await env.SUBSCRIBERS.get(key,'json')||{tables:[],guests:[]};
-          const oldById=new Map(old.guests.map(x=>[x.id,x]));
-          const guests=d.guests.map(x=>{const prior=oldById.get(x.id);return {id:String(x.id||'').slice(0,80),name:String(x.name||'').trim().slice(0,100),partySize:Number(x.partySize),invitedAdults:Number.isInteger(x.invitedAdults)?x.invitedAdults:Number(x.partySize),invitedChildren:Number.isInteger(x.invitedChildren)?x.invitedChildren:0,rsvp:['yes','no','pending'].includes(x.rsvp)?x.rsvp:'pending',adults:Number.isInteger(x.adults)?x.adults:undefined,children:Number.isInteger(x.children)?x.children:undefined,tableId:x.rsvp==='yes'?String(x.tableId||'').slice(0,80):'',updatedAt:prior?.updatedAt||null}});
+          const previous=await effectiveGuestPlan();
+          const oldById=new Map(previous.guests.map(x=>[x.id,x]));
+          const deleted=new Set(Array.isArray(d.deletedGuestIds)?d.deletedGuestIds.filter(x=>typeof x==='string'&&x.length<=80):[]);
+          const guests=d.guests.map(x=>{
+            const prior=oldById.get(x.id);
+            const out={id:String(x.id||'').slice(0,80),name:String(x.name||'').trim().slice(0,100),partySize:Number(x.partySize),
+              invitedAdults:Number.isInteger(x.invitedAdults)?x.invitedAdults:Number(x.partySize),
+              invitedChildren:Number.isInteger(x.invitedChildren)?x.invitedChildren:0,
+              rsvp:['yes','no','pending'].includes(x.rsvp)?x.rsvp:'pending',
+              adults:Number.isInteger(x.adults)?x.adults:undefined,children:Number.isInteger(x.children)?x.children:undefined,
+              tableId:String(x.tableId||'').slice(0,80),updatedAt:typeof x.updatedAt==='string'?x.updatedAt:prior?.updatedAt||null,
+              source:x.source==='self-rsvp'||prior?.source==='self-rsvp'?'self-rsvp':undefined,
+              needsReview:typeof x.needsReview==='boolean'?x.needsReview:!!prior?.needsReview};
+            if(prior?.updatedAt&&(!out.updatedAt||prior.updatedAt>out.updatedAt)){
+              out.rsvp=prior.rsvp;out.adults=prior.adults;out.children=prior.children;out.updatedAt=prior.updatedAt;
+              if(prior.rsvp!=='yes')out.tableId='';
+            }
+            if(out.rsvp!=='yes')out.tableId='';
+            return out;
+          });
+          const guestIds=new Set(guests.map(g=>g.id));
+          // Keep independently submitted RSVPs that a stale administrator tab has not seen.
+          for(const record of previous.guests){
+            if(record.source==='self-rsvp'&&!guestIds.has(record.id)&&!deleted.has(record.id)){
+              guests.push(record);guestIds.add(record.id);
+            }
+          }
+          if(guests.length>1000)return json({error:'Too many guests'},400);
           if(guests.some(x=>!x.id||!x.name||!Number.isInteger(x.partySize)||x.partySize<1||x.partySize>30||x.invitedAdults<0||x.invitedChildren<0||x.invitedAdults+x.invitedChildren!==x.partySize)||new Set(guests.map(x=>x.id)).size!==guests.length)return json({error:'Invalid guest records'},400);
           const tables=d.tables.map(x=>({id:String(x.id||'').slice(0,80),name:String(x.name||'').trim().slice(0,80),capacity:Number(x.capacity)}));
           if(tables.some(x=>!x.id||!x.name||!Number.isInteger(x.capacity)||x.capacity<1||x.capacity>50))return json({error:'Invalid tables'},400);
-          for(const t of tables)if(guests.filter(x=>x.tableId===t.id).reduce((n,x)=>n+x.partySize,0)>t.capacity)return json({error:'Table capacity exceeded'},400);
-          await env.SUBSCRIBERS.put(key,JSON.stringify({tables,guests,published:!!d.published}));
-          return json({ok:true});
+          for(const table of tables)if(guests.filter(x=>x.tableId===table.id&&x.rsvp==='yes').reduce((n,x)=>n+invitedCount(x),0)>table.capacity)return json({error:'Table capacity exceeded'},400);
+          const saved={tables,guests,published:!!d.published};
+          await env.SUBSCRIBERS.put(key,JSON.stringify(saved));
+          for(const id of deleted)if(id.startsWith('self-'))await env.SUBSCRIBERS.put('wedding:rsvp:ignored:'+id,'1');
+          return json({ok:true,plan:await effectiveGuestPlan()});
         }
       }
       if(url.pathname==='/wedding/invitation/search'&&request.method==='POST'){
         const d=await request.json().catch(()=>null),query=String(d?.name||'').trim().toLocaleLowerCase();
         if(query.length<3)return json({error:'Enter at least three characters'},400);
-        const plan=await env.SUBSCRIBERS.get('wedding:test:guest-plan','json')||{guests:[]};
-        return json({matches:plan.guests.filter(x=>x.name.toLocaleLowerCase().includes(query)).slice(0,12).map(x=>({id:x.id,name:x.name,partySize:x.partySize,invitedAdults:x.invitedAdults??x.partySize,invitedChildren:x.invitedChildren??0,rsvp:x.rsvp}))});
+        const plan=await effectiveGuestPlan();
+        return json({matches:plan.guests.filter(x=>!x.needsReview&&x.name.toLocaleLowerCase().includes(query)).slice(0,12).map(x=>({id:x.id,name:x.name,partySize:x.partySize,invitedAdults:x.invitedAdults??x.partySize,invitedChildren:x.invitedChildren??0,rsvp:x.rsvp}))});
       }
       if(url.pathname==='/wedding/invitation/reply'&&request.method==='POST'){
         const d=await request.json().catch(()=>null);
         if(!d||typeof d.id!=='string'||typeof d.attending!=='boolean')return json({error:'Invalid RSVP'},400);
-        const key='wedding:test:guest-plan',plan=await env.SUBSCRIBERS.get(key,'json')||{guests:[]};
-        const guest=plan.guests.find(x=>x.id===d.id);if(!guest)return json({error:'Invitation not found'},404);
+        const key='wedding:test:guest-plan',plan=await effectiveGuestPlan();
+        const guest=plan.guests.find(x=>x.id===d.id&&!x.needsReview);if(!guest)return json({error:'Invitation not found'},404);
         const adults=Number(d.adults),children=Number(d.children);
         if(!Number.isInteger(adults)||!Number.isInteger(children)||adults<0||children<0||adults>(d.attending?(guest.invitedAdults??guest.partySize):0)||children>(d.attending?(guest.invitedChildren??0):0)||d.attending&&adults+children<1||!d.attending&&(adults!==0||children!==0))return json({error:'Invalid attendance count'},400);
-        guest.rsvp=d.attending?'yes':'no';guest.adults=adults;guest.children=children;if(!d.attending)guest.tableId='';
-        guest.updatedAt=new Date().toISOString();
-        await env.SUBSCRIBERS.put(key,JSON.stringify(plan));return json({ok:true});
+        const reply={id:guest.id,attending:d.attending,adults,children,updatedAt:new Date().toISOString(),
+          dietary:String(d.dietary||'').slice(0,400),notes:String(d.notes||'').slice(0,400)};
+        // Save to an independent key first; it survives stale whole-plan writes.
+        await env.SUBSCRIBERS.put('wedding:invitation:reply:'+guest.id,JSON.stringify(reply));
+        guest.rsvp=d.attending?'yes':'no';guest.adults=adults;guest.children=children;guest.updatedAt=reply.updatedAt;
+        if(!d.attending)guest.tableId='';
+        // The authoritative per-invitation record is already stored if this write races.
+        await env.SUBSCRIBERS.put(key,JSON.stringify(plan));
+        return json({ok:true,saved:true,updatedAt:reply.updatedAt});
       }
       if(url.pathname==='/wedding/rsvp' && request.method==='POST'){
         const raw=await request.text();if(raw.length>4096)return json({error:'Request too long'},413);
