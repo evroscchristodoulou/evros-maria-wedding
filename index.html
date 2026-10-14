@@ -156,6 +156,6 @@ installNow.addEventListener('click',async()=>{
 document.getElementById('install-help').addEventListener('click',refreshInstallGuide);
 document.getElementById('install-close').addEventListener('click',()=>installGuide.hidden=true);
 document.getElementById('language').addEventListener('click',()=>{if(!installGuide.hidden)refreshInstallGuide()});
-if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=72').catch(()=>{}));
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=74').catch(()=>{}));
 </script>
 </body></html>
