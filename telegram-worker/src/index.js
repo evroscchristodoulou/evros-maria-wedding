@@ -52,6 +52,11 @@ export default {
           if(!name)continue;
           let guest=plan.guests.find(g=>g.id===id);
           if(!guest){
+            // Repeated standalone RSVPs for the same unique name update one review card.
+            const selfMatches=plan.guests.filter(g=>g.source==='self-rsvp'&&normalizedGuestName(g.name)===normalizedGuestName(name));
+            if(selfMatches.length===1)guest=selfMatches[0];
+          }
+          if(!guest){
             const matches=plan.guests.filter(g=>normalizedGuestName(g.name)===normalizedGuestName(name)&&g.source!=='self-rsvp');
             // Never merge an ambiguous or oversized self-submission into an invitation.
             guest=matches.length===1&&reply.adults<=matches[0].invitedAdults&&reply.children<=matches[0].invitedChildren?matches[0]:null;
@@ -377,7 +382,7 @@ export default {
         const adults=Number(d.adults),children=Number(d.children);
         const dietary=String(d.dietary||'').trim().slice(0,400);
         const notes=String(d.notes||'').trim().slice(0,400);
-        if(!name||typeof attending!=='boolean'||!Number.isInteger(adults)||!Number.isInteger(children)||adults<0||adults>20||children<0||children>20||(attending&&adults+children<1)||(!attending&&(adults!==0||children!==0)))return json({error:'Invalid RSVP details'},400);
+        if(!name||typeof attending!=='boolean'||!Number.isInteger(adults)||!Number.isInteger(children)||adults<0||adults>20||children<0||children>20||adults+children>30||(attending&&adults+children<1)||(!attending&&(adults!==0||children!==0)))return json({error:'Invalid RSVP details'},400);
         const id=crypto.randomUUID(),token=crypto.randomUUID()+crypto.randomUUID();
         const entry={id,name,attending,adults,children,dietary,notes,token,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
         await env.SUBSCRIBERS.put('wedding:rsvp:'+id,JSON.stringify(entry));
@@ -392,7 +397,7 @@ export default {
         if(d.action==='delete'){await env.SUBSCRIBERS.delete(key);return json({ok:true})}
         if(d.action!=='edit')return json({error:'Invalid action'},400);
         const name=String(d.name||'').trim().slice(0,100),attending=d.attending,adults=Number(d.adults),children=Number(d.children);
-        if(!name||typeof attending!=='boolean'||!Number.isInteger(adults)||!Number.isInteger(children)||adults<0||adults>20||children<0||children>20||(attending&&adults+children<1)||(!attending&&(adults!==0||children!==0)))return json({error:'Invalid RSVP details'},400);
+        if(!name||typeof attending!=='boolean'||!Number.isInteger(adults)||!Number.isInteger(children)||adults<0||adults>20||children<0||children>20||adults+children>30||(attending&&adults+children<1)||(!attending&&(adults!==0||children!==0)))return json({error:'Invalid RSVP details'},400);
         Object.assign(old,{name,attending,adults,children,dietary:String(d.dietary||'').trim().slice(0,400),notes:String(d.notes||'').trim().slice(0,400),updatedAt:new Date().toISOString()});
         await env.SUBSCRIBERS.put(key,JSON.stringify(old));return json({ok:true});
       }
