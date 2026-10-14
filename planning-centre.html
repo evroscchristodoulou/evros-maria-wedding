@@ -237,6 +237,7 @@ main{padding-top:35px}.head-row h1{font-size:clamp(45px,6vw,70px)}.head-row p{ma
 const API='https://evros-maria-wedding.evros-christodoulou1995.workers.dev', $=id=>document.getElementById(id);
 let lang=localStorage.getItem('wedding-lang')==='el'?'el':'en',plan=null,followup=null,budget=null,cloudTasks=null,guestError='',budgetError='';
 const t=(en,el)=>lang==='el'?el:en,fmt=n=>Number(n||0).toLocaleString(lang==='el'?'el-CY':'en-GB'),euro=n=>'€'+fmt(Math.round(Number(n||0)*100)/100);
+const attendeeSize=g=>g.rsvp==='yes'&&Number.isInteger(g.adults)&&Number.isInteger(g.children)&&g.adults+g.children>0?g.adults+g.children:Math.max(1,Number(g.partySize)||1);
 function today(){const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Nicosia',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const obj=Object.fromEntries(parts.map(p=>[p.type,p.value]));return obj.year+'-'+obj.month+'-'+obj.day}
 function daysUntil(date){if(!/^\d{4}-\d{2}-\d{2}$/.test(date||''))return null;const a=Date.parse(date+'T12:00:00Z'),b=Date.parse(today()+'T12:00:00Z');return Math.round((a-b)/86400000)}
 function dateText(d){if(!d)return t('No date','Χωρίς ημερομηνία');return new Intl.DateTimeFormat(lang==='el'?'el-CY':'en-GB',{dateStyle:'medium',timeZone:'UTC'}).format(new Date(d+'T12:00:00Z'))}
@@ -249,7 +250,7 @@ function paint(){updateModules();
  $('task-progress').textContent=tasks?fmt(tasks.filter(x=>x.done).length)+' / '+fmt(tasks.length)+' '+t('completed','ολοκληρώθηκαν'):t('No tasks available','Δεν υπάρχουν εργασίες');
  $('task-bar').style.width=tasks&&tasks.length?100*tasks.filter(x=>x.done).length/tasks.length+'%':'0%';
  const attention=$('attention'),taskList=$('task-list'),payments=$('payment-list');attention.replaceChildren();taskList.replaceChildren();payments.replaceChildren();
- if(plan){const guests=plan.guests,confirmed=guests.filter(g=>g.rsvp==='yes'),pending=guests.filter(g=>g.rsvp!=='yes'&&g.rsvp!=='no'),declined=guests.filter(g=>g.rsvp==='no');const tableIds=new Set((plan.tables||[]).map(x=>x.id));const without=confirmed.filter(g=>!g.tableId||!tableIds.has(g.tableId));const unassigned=without.reduce((n,g)=>n+Math.max(1,Number(g.partySize)||1),0);const unsent=followup?pending.filter(g=>!followup[g.id]?.invitationSentAt).length:null;
+ if(plan){const guests=plan.guests,confirmed=guests.filter(g=>g.rsvp==='yes'),pending=guests.filter(g=>g.rsvp!=='yes'&&g.rsvp!=='no'),declined=guests.filter(g=>g.rsvp==='no');const tableIds=new Set((plan.tables||[]).map(x=>x.id));const without=confirmed.filter(g=>!g.tableId||!tableIds.has(g.tableId));const unassigned=without.reduce((n,g)=>n+attendeeSize(g),0);const unsent=followup?pending.filter(g=>!followup[g.id]?.invitationSentAt).length:null;
  $('pending').textContent=fmt(pending.length);$('unassigned').textContent=fmt(unassigned);$('invited').textContent=fmt(guests.length);$('confirmed').textContent=fmt(confirmed.length);$('declined').textContent=fmt(declined.length);$('not-sent').textContent=unsent===null?'—':fmt(unsent);$('rsvp-bar').style.width=guests.length?100*(confirmed.length+declined.length)/guests.length+'%':'0%';$('rsvp-note').textContent=fmt(confirmed.length+declined.length)+' / '+fmt(guests.length)+' '+t('invitations responded','προσκλήσεις απαντήθηκαν');
  if(pending.length)addItem(attention,t(fmt(pending.length)+' invitations awaiting RSVP',fmt(pending.length)+' προσκλήσεις σε αναμονή'),t('Send personal reminders','Στείλτε προσωπικές υπενθυμίσεις'),'./rsvp-followup.html');
  if(unsent)addItem(attention,t(fmt(unsent)+' pending invitations not marked sent',fmt(unsent)+' εκκρεμείς προσκλήσεις χωρίς καταγεγραμμένη αποστολή'),t('Check invitation status','Ελέγξτε την κατάσταση πρόσκλησης'),'./rsvp-followup.html');
@@ -281,7 +282,7 @@ function selectView(name,writeHistory=true){
  if(writeHistory)history.replaceState(null,'','#'+view);
 }
 function updateModules(){
- const size=g=>Math.max(1,Number(g.partySize)||1);
+ const size=g=>attendeeSize(g);
  if(plan){
   const guests=plan.guests,yes=guests.filter(g=>g.rsvp==='yes'),no=guests.filter(g=>g.rsvp==='no'),pending=guests.length-yes.length-no.length;
   const adultsChildren=yes.reduce((acc,g)=>{const total=size(g);let children=Number.isInteger(g.children)?g.children:Number(g.invitedChildren)||0;children=Math.max(0,Math.min(total,children));let adults=Number.isInteger(g.adults)?g.adults:total-children;if(adults+children!==total)adults=total-children;acc.adults+=adults;acc.children+=children;return acc},{adults:0,children:0});
