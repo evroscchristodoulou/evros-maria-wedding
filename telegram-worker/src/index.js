@@ -22,7 +22,7 @@ export default {
         const raw=await request.text();if(raw.length>30000)return json({error:'Too large'},413);
         let input;try{input=JSON.parse(raw)}catch{return json({error:'Invalid JSON'},400)}
         if(!input||!Array.isArray(input.announcements)||input.announcements.length>30)return json({error:'Invalid announcements'},400);
-        const valid=input.announcements.every(a=>a&&typeof a.id==='string'&&a.id.length<=80&&typeof a.titleEn==='string'&&a.titleEn.trim()&&a.titleEn.length<=140&&typeof a.titleEl==='string'&&a.titleEl.length<=140&&typeof a.bodyEn==='string'&&a.bodyEn.trim()&&a.bodyEn.length<=1800&&typeof a.bodyEl==='string'&&a.bodyEl.length<=1800&&typeof a.date==='string'&&/^\\d{4}-\\d{2}-\\d{2}$/.test(a.date)&&typeof a.published==='boolean');
+        const valid=input.announcements.every(a=>a&&typeof a.id==='string'&&a.id.length<=80&&typeof a.titleEn==='string'&&a.titleEn.trim()&&a.titleEn.length<=140&&typeof a.titleEl==='string'&&a.titleEl.length<=140&&typeof a.bodyEn==='string'&&a.bodyEn.trim()&&a.bodyEn.length<=1800&&typeof a.bodyEl==='string'&&a.bodyEl.length<=1800&&typeof a.date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(a.date)&&typeof a.published==='boolean');
         if(!valid)return json({error:'Invalid announcement entry'},400);
         const announcements=input.announcements.map(a=>({id:a.id,titleEn:a.titleEn.trim(),titleEl:a.titleEl.trim(),bodyEn:a.bodyEn.trim(),bodyEl:a.bodyEl.trim(),date:a.date,published:a.published}));
         const updatedAt=new Date().toISOString();
