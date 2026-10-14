@@ -7,7 +7,7 @@ const topics=[
 ['schedule','time schedule ceremony reception timeline dinner ωρα προγραμμα τελετη δεξιωση','Check the published wedding schedule on our Timeline page.','Δείτε το δημοσιευμένο πρόγραμμα στη σελίδα «Πρόγραμμα».','./timeline.html','Schedule','Πρόγραμμα'],
 ['seating','seating table seat τραπεζι θεση καθισμα','Seating information is available when the couple publishes the seating plan.','Οι θέσεις είναι διαθέσιμες όταν δημοσιευτεί το πλάνο τραπεζιών.','./seating.html','Seating','Τραπέζια'],
 ['music','song music dj dance τραγουδι μουσικη χοροσ','Suggest a song through the song-request page.','Προτείνετε τραγούδι στη σελίδα μουσικών επιλογών.','./songs.html','Songs','Τραγούδια'],
-['photos','photo gallery picture φωτογραφια αλμπουμ','Visit our wedding photo gallery.','Δείτε το φωτογραφικό άλμπουμ του γάμου.','./gallery.html','Gallery','Άλμπουμ'],
+['photos','photo gallery picture φωτογραφια αλμπουμ','Visit our wedding photo gallery.','Δείτε το φωτογραφικό άλμπουμ του γάμου.','./album.html','Gallery','Άλμπουμ'],
 ['weather','weather rain forecast καιροσ βροχη','Check the wedding weather page closer to the date.','Δείτε τη σελίδα καιρού πιο κοντά στον γάμο.','./wedding-weather.html','Weather','Καιρός']];
 const css=['#wg-root{position:fixed;bottom:15px;right:15px;z-index:9999;font:13px/1.6 Inter,Arial,sans-serif;color:#292622}',
 '#wg-root *{box-sizing:border-box}#wg-launch{background:#292622;color:white;border:1px solid #a9967e;border-radius:30px;padding:13px 17px;cursor:pointer;box-shadow:0 8px 25px #0002}',
