@@ -88,6 +88,12 @@ body{background:#faf9f7;background-image:radial-gradient(ellipse at 50% 4%,rgba(
 <section class="home-wishes" aria-label="Guest wishes"><div class="eyebrow" data-en="Words from our loved ones" data-el="Ευχές από αγαπημένα πρόσωπα">Words from our loved ones</div><div id="home-wishes-list" aria-live="polite"></div><a href="./guestbook.html" data-en="Leave a wish →" data-el="Γράψτε μια ευχή →">Leave a wish →</a></section>
 <section class="music-links" aria-label="Music and DJ"><div class="guest-links-heading" data-en="MUSIC & CELEBRATION" data-el="ΜΟΥΣΙΚΗ & ΔΙΑΣΚΕΔΑΣΗ">MUSIC &amp; CELEBRATION</div><nav class="music-links-grid" aria-label="Music requests"><a class="quick-link" href="./dj.html" aria-label="DJ requests" title="DJ requests"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13M9 9l12-2"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span data-en="DJ Requests" data-el="Αιτήματα DJ">DJ Requests</span></a><a class="quick-link" href="./songs.html"  aria-label="Songs" title="Songs"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3a9 9 0 0 1 9 9"/></svg><span data-en="Songs" data-el="Τραγούδια">Songs</span></a></nav></section>
 </main>
+<section id="wedding-announcements-home" aria-labelledby="announcements-heading" style="max-width:900px;margin:35px auto 60px;padding:24px 22px;border:1px solid #dfd9d0;background:#fffdfa">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+<div><div style="font-size:10px;letter-spacing:.23em;color:#83776a" data-en="STAY INFORMED" data-el="ΜΕΙΝΕΤΕ ΕΝΗΜΕΡΩΜΕΝΟΙ">STAY INFORMED</div>
+<h2 id="announcements-heading" style="font:400 clamp(30px,5vw,42px) 'Cormorant Garamond',Georgia,serif;margin:6px 0" data-en="Wedding Announcements" data-el="Ανακοινώσεις Γάμου">Wedding Announcements</h2></div>
+<a href="./announcements.html" style="font-size:12px;text-decoration:underline;text-underline-offset:4px" data-en="All updates ↗" data-el="Όλες οι ενημερώσεις ↗">All updates ↗</a></div>
+<div id="home-announcements-list" style="font-size:13px;color:#746e65" aria-live="polite"><p data-en="Checking for updates…" data-el="Έλεγχος ενημερώσεων…">Checking for updates…</p></div></section>
 
 <footer>EVROS &amp; MARIA <span aria-hidden="true">·</span> 10.06.<a href="./planning-centre.html" class="footer-dashboard-link" aria-label="2028">2028</a></footer>
 <script>
@@ -159,4 +165,11 @@ document.getElementById('language').addEventListener('click',()=>{if(!installGui
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=78').catch(()=>{}));
 </script>
 <script src="./guest-wedding-guide.js?v=77" defer></script>
+<script>
+(function(){const root=document.getElementById('home-announcements-list');let data=[];const lang=()=>localStorage.getItem('wedding-lang')==='el'?'el':'en';
+function render(){root.replaceChildren();const published=data.filter(x=>x.published).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,2);if(!published.length){const p=document.createElement('p');p.textContent=lang()==='el'?'Δεν υπάρχουν νέες ανακοινώσεις.':'No new announcements at the moment.';root.append(p);return}for(const a of published){const article=document.createElement('article');article.style.cssText='padding:12px 0;border-top:1px solid #e5dfd5';const date=document.createElement('small');date.textContent=a.date;const h=document.createElement('h3');h.style.cssText="font:400 25px 'Cormorant Garamond',serif;margin:2px 0";h.textContent=(lang()==='el'?a.titleEl:a.titleEn)||a.titleEn;const p=document.createElement('p');p.style.cssText='margin:0;white-space:pre-wrap';p.textContent=(lang()==='el'?a.bodyEl:a.bodyEn)||a.bodyEn;article.append(date,h,p);root.append(article)}}
+fetch('https://evros-maria-wedding.evros-christodoulou1995.workers.dev/wedding/announcements',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error();return r.json()}).then(x=>{data=Array.isArray(x.announcements)?x.announcements:[];render()}).catch(()=>{root.textContent=lang()==='el'?'Οι ενημερώσεις δεν είναι διαθέσιμες.':'Updates are temporarily unavailable.'});
+document.getElementById('language')?.addEventListener('click',()=>setTimeout(render,0));
+})();
+</script>
 </body></html>
