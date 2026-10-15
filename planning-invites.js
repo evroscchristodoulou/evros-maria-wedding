@@ -60,7 +60,7 @@ async function commit(mutate,en,gr,deleted=[]){
   paint();document.dispatchEvent(new Event('wedding:planning-updated'));
   message(T(en,gr));return true;
  }catch(e){message(T('Not saved: ','Δεν αποθηκεύτηκε: ')+e.message,true);return false;}
- finally{saving=false;root.removeAttribute('aria-busy');}
+ finally{saving=false;root.removeAttribute('aria-busy');render();}
 }
 function current(id){return plan?.guests?.find(x=>x.id===id);}
 function available(table,ignoreId){return Number(table.capacity)-(plan?.guests||[])
@@ -152,7 +152,7 @@ async function markSent(g){
   message(action==='invited'?T('Marked sent. No message was sent automatically.','Σημειώθηκε ως σταλμένη, χωρίς αυτόματη αποστολή.'):
    T('Sent flag cleared.','Αφαιρέθηκε η ένδειξη αποστολής.'));
  }catch(e){message(T('Could not mark invitation: ','Αποτυχία ενημέρωσης: ')+e.message,true);}
- finally{saving=false;root.removeAttribute('aria-busy');}
+ finally{saving=false;root.removeAttribute('aria-busy');render();}
 }
 function card(g){
  const card=node('article','gm-row'),top=node('div','gm-row-top');
