@@ -57,7 +57,7 @@ async function commit(mutate,en,gr,deleted=[]){
   }
   if(!Array.isArray(data.plan?.guests)||typeof data.plan.revision!=='string')throw Error('Save not verified');
   plan=data.plan;keepCopy(plan);active=null;
-  paint();document.dispatchEvent(new Event('wedding:planning-updated'));
+  try{paint();document.dispatchEvent(new Event('wedding:planning-updated'));}catch(error){render();}
   message(T(en,gr));return true;
  }catch(e){message(T('Not saved: ','Δεν αποθηκεύτηκε: ')+e.message,true);return false;}
  finally{saving=false;root.removeAttribute('aria-busy');render();}
@@ -80,7 +80,7 @@ function editor(g){
     message(T('Enter a name and valid invited numbers.','Συμπληρώστε όνομα και έγκυρους αριθμούς.'),true);return;}
    if(plan.guests.some(x=>x.id!==g.id&&norm(x.name)===norm(n))){
     message(T('That name already exists.','Το όνομα υπάρχει ήδη.'),true);return;}
-   if(g.rsvp==='yes'&&((g.adults??0)>a||(g.children??0)>c)){
+   if(g.rsvp==='yes'&&(a+c<count(g)||(g.adults??0)>a||(g.children??0)>c)){
     message(T('Confirmed attendance exceeds the new invitation. Update RSVP first.','Η επιβεβαιωμένη παρουσία υπερβαίνει τη νέα πρόσκληση. Αλλάξτε πρώτα το RSVP.'),true);return;}
    await commit(d=>{const x=d.guests.find(x=>x.id===g.id);if(!x)return false;
     x.name=n;x.invitedAdults=a;x.invitedChildren=c;x.partySize=a+c;
@@ -125,7 +125,8 @@ function tableSelect(g){
  const select=document.createElement('select');select.setAttribute('aria-label',T('Seat assignment for ','Τραπέζι για ')+g.name);
  const none=node('option','',T('— Unassigned —','— Χωρίς τραπέζι —'));none.value='';select.append(none);
  for(const t of plan.tables){
-  const free=available(t,g.id);const opt=node('option','',t.name+' · '+Math.max(0,free)+' '+T('free','ελεύθερες'));
+  const free=available(t,g.id),occupied=plan.guests.filter(x=>reply(x)==='yes'&&x.tableId===t.id).reduce((total,x)=>total+count(x),0);
+  const opt=node('option','',t.name+' · '+Math.max(0,t.capacity-occupied)+' '+T('free','ελεύθερες'));
   opt.value=t.id;opt.disabled=t.id!==g.tableId&&free<count(g);select.append(opt);
  }
  select.value=g.tableId||'';select.disabled=!!g.needsReview||saving;
@@ -148,7 +149,7 @@ async function markSent(g){
    body:JSON.stringify({id:g.id,action}),cache:'no-store'});
   const data=await res.json().catch(()=>({}));if(!res.ok)throw Error(data.error||'Status failed');
   if(!followup)followup={};followup[g.id]=data.entry;
-  paint();document.dispatchEvent(new Event('wedding:planning-updated'));
+  try{paint();document.dispatchEvent(new Event('wedding:planning-updated'));}catch(error){render();}
   message(action==='invited'?T('Marked sent. No message was sent automatically.','Σημειώθηκε ως σταλμένη, χωρίς αυτόματη αποστολή.'):
    T('Sent flag cleared.','Αφαιρέθηκε η ένδειξη αποστολής.'));
  }catch(e){message(T('Could not mark invitation: ','Αποτυχία ενημέρωσης: ')+e.message,true);}
