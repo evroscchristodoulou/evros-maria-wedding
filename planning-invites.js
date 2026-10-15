@@ -19,6 +19,7 @@
   }
   function copyInvite(g){
     const url=linkFor(g);
+    if(!navigator.clipboard?.writeText){window.prompt(tr('Copy invitation link:','Αντιγράψτε τον σύνδεσμο:'),url);return;}
     navigator.clipboard.writeText(url).then(
       ()=>message(tr('Invitation link copied for ','Ο σύνδεσμος πρόσκλησης αντιγράφηκε για ')+g.name),
       ()=>window.prompt(tr('Copy invitation link:','Αντιγράψτε τον σύνδεσμο:'),url)
