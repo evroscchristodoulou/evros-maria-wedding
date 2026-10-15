@@ -106,14 +106,14 @@ main{padding-top:35px}.head-row h1{font-size:clamp(45px,6vw,70px)}.head-row p{ma
 .quick-invite-list-head{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #e2d9cf;padding:9px 0 6px}
 .quick-invite-list-head strong{font-size:11px;font-weight:500}
 .quick-pending-list{display:grid;gap:5px;max-height:216px;overflow-y:auto;overscroll-behavior:contain}
-.quick-pending-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;background:#fffdfa;border:1px solid #e5ded3}
+.quick-pending-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;background:#fffdfa;border:1px solid #e5ded3}
 .quick-pending-name{font-size:12px;min-width:0;overflow-wrap:anywhere}
 .quick-pending-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .quick-pending-actions button,.quick-invite-created button{border:1px solid #d6c8b7;background:#fffdfa;color:#45392d;font:400 10px Inter,Arial,sans-serif;padding:6px 9px;cursor:pointer;white-space:nowrap}
 .quick-pending-actions button:hover,.quick-invite-created button:hover{background:#efe7dc}
 .quick-pending-actions label{display:flex;align-items:center;gap:4px;font-size:10px;color:#544839;cursor:pointer;white-space:nowrap}
 .quick-pending-actions input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:#715c46}
-.quick-pending-counts{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 0 1px;font-size:10px}
+.quick-pending-counts{display:flex;flex-basis:100%;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 0 1px;font-size:10px}.quick-pending-counts[hidden]{display:none}
 .quick-pending-counts input{width:58px;border:1px solid #d9d0c3;background:#fffdfa;padding:6px;font:400 11px Inter,sans-serif}
 .quick-pending-counts button{border:1px solid #292622;background:#292622;color:#fff;font:400 10px Inter,sans-serif;padding:6px 9px;cursor:pointer}
 .quick-invite-created{padding:8px 10px;border:1px solid #d9ccb9;background:#fff8ed;margin:8px 0;font-size:11px}
