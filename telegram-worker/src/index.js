@@ -360,6 +360,18 @@ export default {
           return json({ok:true,plan:await effectiveGuestPlan()});
         }
       }
+      // Minimal public list for guests who prefer browsing unanswered invitations.
+      // Return only pending invitation identity and invited counts, never tables or notes.
+      if(url.pathname==='/wedding/invitation/pending'&&request.method==='GET'){
+        const pageParam=Number(url.searchParams.get('page')||1);
+        if(!Number.isInteger(pageParam)||pageParam<1||pageParam>100)return json({error:'Invalid page'},400);
+        const current=await effectiveGuestPlan();
+        const pending=current.guests.filter(g=>g.rsvp==='pending'&&!g.needsReview)
+          .sort((a,b)=>a.name.localeCompare(b.name,'el',{sensitivity:'base'}));
+        const perPage=12,start=(pageParam-1)*perPage;
+        const matches=pending.slice(start,start+perPage).map(g=>({id:g.id,name:g.name,invitedAdults:g.invitedAdults??g.partySize,invitedChildren:g.invitedChildren??0}));
+        return json({matches,total:pending.length,page:pageParam,pages:Math.max(1,Math.ceil(pending.length/perPage))});
+      }
       if(url.pathname==='/wedding/invitation/search'&&request.method==='POST'){
         const d=await request.json().catch(()=>null),query=String(d?.name||'').trim().toLocaleLowerCase();
         if(query.length<3)return json({error:'Enter at least three characters'},400);
