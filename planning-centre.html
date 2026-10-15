@@ -146,6 +146,68 @@ main{padding-top:35px}.head-row h1{font-size:clamp(45px,6vw,70px)}.head-row p{ma
 #status:empty{min-height:0}
 @media(max-width:750px){.em-action-bar{margin:11px -8px 10px;padding:7px 9px}.em-action-bar .em-action-label{font-size:8px;padding:0 6px 0 2px}.em-action-bar a,.em-action-bar button{min-height:38px;padding:9px 10px}.em-report-switcher>summary{display:block}.em-report-switcher>summary small{display:block;margin:4px 0 0 14px}}
 @media(prefers-reduced-motion:reduce){.em-action-bar a,.em-action-bar button,.em-report-switcher>summary::before{transition:none}}
+</style><style>
+/* All-in-One Guest Manager — compact admin functionality with safe explicit choices */
+.gm-manager{padding:16px 18px 12px;margin:9px 0 12px}
+.gm-heading,.gm-toolbar-actions,.gm-stats,.gm-filters,.gm-paging,.gm-paging>div,.gm-actions,.gm-fields,.gm-actions-more{display:flex;align-items:center;gap:8px}
+.gm-heading{justify-content:space-between;align-items:flex-start}
+.gm-heading h2{font:400 clamp(30px,4vw,39px)/1.1 'Cormorant Garamond',Georgia,serif;margin:2px 0}
+.gm-heading p{margin:1px 0 7px;color:#817567;font-size:11px}
+.gm-manager button{cursor:pointer}
+.gm-toolbar-actions button,.gm-paging button,.gm-actions button,.gm-fields button,.gm-table-form button{border:1px solid #d8c9b8;background:#fffdfa;color:#514538;font:500 10px Inter,Arial,sans-serif;padding:8px 10px;border-radius:2px}
+.gm-toolbar-actions button:hover,.gm-paging button:hover:not(:disabled),.gm-actions button:hover:not(:disabled),.gm-fields button:hover:not(:disabled){background:#f0e6d8;border-color:#bba58b}
+.gm-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:8px 0 12px}
+.gm-stats>span{display:flex;align-items:baseline;gap:5px;min-width:0;padding:8px 9px;background:#fffdfa;border:1px solid #e2dacf;color:#74695e;font-size:9px;line-height:1.35}
+.gm-stats strong{font:400 23px 'Cormorant Garamond',Georgia,serif;color:#292622}
+.gm-manager .quick-invite-form{grid-template-columns:minmax(170px,1fr) 90px 90px auto;gap:7px}
+.gm-manager .quick-invite-form input{padding:10px;min-height:37px}
+.gm-helper{font-size:9px;color:#897b6e;margin:6px 0 12px}
+.gm-filters{padding:11px 0 7px;border-top:1px solid #e1d9ce}
+.gm-filters input,.gm-filters select{min-width:0;border:1px solid #d7cbbb;background:#fffdfa;padding:9px 10px;font:400 11px Inter,Arial,sans-serif;color:#41392f}
+.gm-filters input{flex:1}.gm-filters select{width:min(185px,39%)}
+.gm-visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.gm-guest-list{display:grid;gap:6px;max-height:460px;overflow-y:auto;scrollbar-width:thin;overscroll-behavior:contain}
+.gm-row{background:#fffdfa;border:1px solid #e3dbcf;padding:9px 11px;min-width:0}
+.gm-row-top{display:flex;align-items:center;justify-content:space-between;gap:9px}
+.gm-identity{min-width:0;flex:1}
+.gm-identity strong{font:500 12px/1.45 Inter,Arial,sans-serif;overflow-wrap:anywhere}
+.gm-identity small{color:#817465;font-size:10px;display:block}
+.gm-status-pill{display:inline-flex;padding:3px 8px;border:1px solid #dfd4c8;color:#806f5a;background:#f8f1e7;font:500 9px Inter,Arial,sans-serif;white-space:nowrap}
+.gm-status-pill.yes{background:#eff5ee;color:#3f6949;border-color:#d3e2d2}
+.gm-status-pill.no{background:#f9efee;color:#92534e;border-color:#e8d7d5}
+.gm-status-pill.review{background:#fff3e1;color:#99692d;border-color:#e3cead}
+.gm-actions{flex-wrap:wrap;justify-content:flex-end}
+.gm-actions button{font-size:10px;padding:6px 9px}
+.gm-actions .gm-accent{border-color:#292622;background:#292622;color:#fffdfa}
+.gm-row-details{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:7px 0 1px;padding-top:6px;border-top:1px solid #efe8df;font-size:10px;color:#75685b}
+.gm-seat-label{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.gm-seat-label select{max-width:190px;min-width:125px;border:1px solid #ded3c4;padding:6px;font:400 10px Inter,Arial,sans-serif;background:white;color:#423a31}
+.gm-inline{margin:8px 0 0;padding:10px;background:#f8f4ed;border:1px solid #e4d8c8}
+.gm-inline[hidden]{display:none}
+.gm-inline h3{font:400 23px 'Cormorant Garamond',Georgia,serif;margin:0 0 7px}
+.gm-fields{align-items:end;flex-wrap:wrap}
+.gm-fields label{min-width:75px;display:grid;gap:3px;color:#6f6255;font:400 10px Inter,sans-serif}
+.gm-fields input{border:1px solid #d7c9b9;background:white;padding:8px;font:400 11px Inter,sans-serif;max-width:185px;min-width:0;width:100%}
+.gm-fields label.gm-field-grow{flex:1;min-width:140px}
+.gm-fields button.gm-dark,.gm-table-form button{background:#292622;border-color:#292622;color:#fff}
+.gm-choice{display:inline-flex;gap:5px;align-items:center;padding:7px 9px;background:white;border:1px solid #dcd0c0;font:400 11px Inter,sans-serif;cursor:pointer}
+.gm-choice input{accent-color:#6e573e;width:16px;height:16px;margin:0}
+.gm-inline p{font-size:10px;color:#756858;margin:3px 0 8px}
+.gm-paging{justify-content:space-between;padding:9px 1px 4px;color:#806e60;font-size:10px}
+.gm-paging button:disabled{opacity:.38;cursor:default}
+.gm-table-tools{border-top:1px solid #ded5c8;margin:10px 0 0}
+.gm-table-tools>summary{display:flex;align-items:center;gap:8px;padding:12px 0 9px;cursor:pointer;list-style:none;font-size:11px;color:#645441}
+.gm-table-tools>summary::-webkit-details-marker{display:none}
+.gm-table-tools>summary span:last-child{margin-left:auto}
+.gm-table-summary{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.gm-table-summary span{font:400 10px Inter,sans-serif;padding:6px 9px;border:1px solid #ded6cb;background:#fffdfa}
+.gm-table-form{display:flex;gap:7px;align-items:end;flex-wrap:wrap}
+.gm-table-form label{display:grid;gap:3px;font-size:10px}
+.gm-table-form input{border:1px solid #d6cbbb;background:white;padding:8px 9px;font:400 11px Inter,sans-serif;max-width:180px}
+.gm-status{margin:8px 0 0!important;font-size:11px!important;min-height:15px!important}
+@media(max-width:930px){.gm-manager .quick-invite-form{grid-template-columns:minmax(140px,1fr) 83px 83px auto}.gm-stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:680px){.gm-manager{padding:12px}.gm-manager .quick-invite-form{grid-template-columns:repeat(2,minmax(0,1fr))}.gm-manager .quick-invite-form label:first-child{grid-column:1/-1}.gm-manager .quick-invite-form button{grid-column:1/-1}.gm-stats{grid-template-columns:repeat(3,minmax(0,1fr))}.gm-row-top{align-items:flex-start;flex-wrap:wrap}.gm-actions{justify-content:flex-start}.gm-filters select{width:44%}.gm-seat-label select{max-width:160px}}
+@media(max-width:440px){.gm-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.gm-toolbar-actions{flex-wrap:wrap;justify-content:flex-end}.gm-fields label{flex:1 1 80px}.gm-seat-label{flex-wrap:wrap}}
 </style></head><body>
 <header><a class="brand" href="./">E &amp; M</a><button id="language" type="button">ΕΛ / EN</button></header>
 <nav class="utility-nav" aria-label="Planning navigation">
@@ -190,19 +252,53 @@ main{padding-top:35px}.head-row h1{font-size:clamp(45px,6vw,70px)}.head-row p{ma
 <a href="./wedding-predictions.html?manage=1" data-en="Predictions" data-el="Προβλέψεις">Predictions</a>
 </nav>
 <div class="notice" data-en="Planning preview: guests, shared checklist and test budget load from Cloudflare. Management pages are not password-protected. Do not enter private or real financial information." data-el="Δοκιμαστική οργάνωση: καλεσμένοι, κοινή λίστα εργασιών και δοκιμαστικός προϋπολογισμός φορτώνονται από το Cloudflare. Η διαχείριση δεν προστατεύεται με κωδικό. Μην καταχωρείτε προσωπικά ή πραγματικά οικονομικά στοιχεία.">Planning preview: guest data and test budget load from Cloudflare; checklist tasks come from this device only. Management pages are not password-protected yet. Do not enter private or real financial data until access is secured.</div>
-<section id="quick-invite-desk" class="quick-invite-desk" aria-label="Quick invitations and RSVP">
-<div class="quick-invite-head"><div><span class="eyebrow" data-en="ONE-STOP INVITATIONS" data-el="ΓΡΗΓΟΡΕΣ ΠΡΟΣΚΛΗΣΕΙΣ">ONE-STOP INVITATIONS</span><h2 data-en="Invite & confirm" data-el="Πρόσκληση & επιβεβαίωση">Invite & confirm</h2></div><a href="./guest-list.html" data-en="Full guest list ↗" data-el="Πλήρης λίστα ↗">Full guest list ↗</a></div>
+<section id="quick-invite-desk" class="quick-invite-desk gm-manager" aria-label="All-in-One Guest Manager">
+<div class="gm-heading">
+  <div><span class="eyebrow" data-en="GUEST OPERATIONS" data-el="ΔΙΑΧΕΙΡΙΣΗ ΚΑΛΕΣΜΕΝΩΝ">GUEST OPERATIONS</span><h2 data-en="Guest Manager" data-el="Διαχείριση Καλεσμένων">Guest Manager</h2>
+  <p data-en="Invitations, replies and seating — all here." data-el="Προσκλήσεις, απαντήσεις και τραπέζια — όλα εδώ.">Invitations, replies and seating — all here.</p></div>
+  <div class="gm-toolbar-actions"><button id="gm-refresh" type="button" data-en="↻ Refresh" data-el="↻ Ανανέωση">↻ Refresh</button>
+  <button id="gm-backup" type="button" data-en="↓ Backup" data-el="↓ Αντίγραφο">↓ Backup</button></div>
+</div>
+<div class="gm-stats" aria-label="Guest status summary">
+  <span><strong id="gm-total-count">—</strong> <span data-en="Invitations" data-el="Προσκλήσεις">Invitations</span></span>
+  <span><strong id="quick-pending-count">—</strong> <span data-en="Awaiting RSVP" data-el="Αναμονή RSVP">Awaiting RSVP</span></span>
+  <span><strong id="gm-confirmed-count">—</strong> <span data-en="Attending" data-el="Θα έρθουν">Attending</span></span>
+  <span><strong id="gm-declined-count">—</strong> <span data-en="Declined" data-el="Αρνήθηκαν">Declined</span></span>
+  <span><strong id="gm-unseated-count">—</strong> <span data-en="To seat" data-el="Χωρίς τραπέζι">To seat</span></span>
+</div>
 <form id="quick-invite-form" class="quick-invite-form" autocomplete="off">
-<label><span data-en="Guest or family name" data-el="Όνομα καλεσμένου / οικογένειας">Guest or family name</span><input id="quick-invite-name" maxlength="100" required placeholder="Name / Όνομα"></label>
-<label><span data-en="Invited adults" data-el="Προσκεκλημένοι ενήλικες">Invited adults</span><input id="quick-invite-adults" type="number" min="0" max="30" step="1" required inputmode="numeric" placeholder="0"></label>
-<label><span data-en="Children" data-el="Παιδιά">Children</span><input id="quick-invite-children" type="number" min="0" max="30" step="1" inputmode="numeric" placeholder="0"></label>
-<button type="submit" id="quick-invite-submit" data-en="+ Add invitation" data-el="+ Προσθήκη πρόσκλησης">+ Add invitation</button>
+  <label><span data-en="Guest / family" data-el="Όνομα / οικογένεια">Guest / family</span><input id="quick-invite-name" maxlength="100" minlength="2" required placeholder="Name / Όνομα"></label>
+  <label><span data-en="Adults invited" data-el="Ενήλικες">Adults invited</span><input id="quick-invite-adults" type="number" min="0" max="30" step="1" required inputmode="numeric" placeholder="0"></label>
+  <label><span data-en="Children invited" data-el="Παιδιά">Children invited</span><input id="quick-invite-children" type="number" min="0" max="30" step="1" inputmode="numeric" placeholder="0"></label>
+  <button id="quick-invite-submit" type="submit" data-en="+ Add invitation" data-el="+ Νέα πρόσκληση">+ Add invitation</button>
 </form>
-<p class="quick-invite-note" data-en="New invitations are always unanswered until someone explicitly confirms or declines. Invitations are not sent automatically." data-el="Οι νέες προσκλήσεις παραμένουν αναπάντητες μέχρι ρητή επιβεβαίωση ή άρνηση. Δεν αποστέλλονται αυτόματα.">New invitations are always unanswered until someone explicitly confirms or declines. Invitations are not sent automatically.</p>
+<p class="gm-helper" data-en="New guests stay unanswered until an explicit RSVP. Nothing is sent automatically." data-el="Οι νέοι καλεσμένοι παραμένουν σε αναμονή RSVP. Καμία πρόσκληση δεν αποστέλλεται αυτόματα.">New guests stay unanswered until an explicit RSVP. Nothing is sent automatically.</p>
 <div id="quick-invite-created" class="quick-invite-created" hidden></div>
-<div class="quick-invite-list-head"><strong><span data-en="Awaiting RSVP" data-el="Σε αναμονή RSVP">Awaiting RSVP</span> <span id="quick-pending-count">—</span></strong><a href="./rsvp-followup.html" data-en="See all / follow up ↗" data-el="Προβολή όλων / υπενθυμίσεις ↗">See all / follow up ↗</a></div>
-<div id="quick-pending-list" class="quick-pending-list" aria-live="polite"></div>
-<div id="quick-invite-status" class="status" role="status" aria-live="polite"></div>
+<div class="gm-filters">
+  <label for="gm-search" class="gm-visually-hidden" data-en="Search guests" data-el="Αναζήτηση καλεσμένων">Search guests</label>
+  <input id="gm-search" type="search" autocomplete="off" maxlength="100" placeholder="Search guest / Αναζήτηση"/>
+  <label for="gm-filter" class="gm-visually-hidden" data-en="Filter guests" data-el="Φίλτρο καλεσμένων">Filter guests</label>
+  <select id="gm-filter">
+    <option value="all" data-en="All guests" data-el="Όλοι">All guests</option>
+    <option value="pending" data-en="Awaiting RSVP" data-el="Σε αναμονή">Awaiting RSVP</option>
+    <option value="yes" data-en="Attending" data-el="Θα έρθουν">Attending</option>
+    <option value="no" data-en="Declined" data-el="Αρνήθηκαν">Declined</option>
+    <option value="review" data-en="Needs review" data-el="Για έλεγχο">Needs review</option>
+    <option value="unseated" data-en="Unassigned seats" data-el="Χωρίς τραπέζι">Unassigned seats</option>
+  </select>
+</div>
+<div id="quick-pending-list" class="gm-guest-list" aria-live="polite"></div>
+<div class="gm-paging"><span id="gm-page-info"></span><div><button id="gm-prev" type="button" data-en="← Previous" data-el="← Πίσω">← Previous</button><button id="gm-next" type="button" data-en="Next →" data-el="Επόμενα →">Next →</button></div></div>
+<details class="gm-table-tools" id="gm-table-tools">
+  <summary><strong data-en="Tables & capacity" data-el="Τραπέζια & χωρητικότητα">Tables & capacity</strong> <span id="gm-table-count">—</span> <span aria-hidden="true">▾</span></summary>
+  <div id="gm-table-summary" class="gm-table-summary"></div>
+  <form id="gm-table-form" class="gm-table-form">
+    <label><span data-en="New table name" data-el="Όνομα νέου τραπεζιού">New table name</span><input id="gm-table-name" maxlength="80" required placeholder="Table 1 / Τραπέζι 1"></label>
+    <label><span data-en="Capacity" data-el="Θέσεις">Capacity</span><input id="gm-table-capacity" type="number" min="1" max="50" required step="1" inputmode="numeric" placeholder="10"></label>
+    <button id="gm-add-table" type="submit" data-en="+ Create table" data-el="+ Νέο τραπέζι">+ Create table</button>
+  </form>
+</details>
+<div id="quick-invite-status" class="status gm-status" role="status" aria-live="polite"></div>
 </section>
 <div class="wedding-timeline"><div><span data-en="COUNTDOWN TO OUR DAY" data-el="ΑΝΤΙΣΤΡΟΦΗ ΜΕΤΡΗΣΗ">COUNTDOWN TO OUR DAY</span><strong id="wedding-countdown">—</strong><small id="wedding-countdown-label" data-en="days to go" data-el="ημέρες απομένουν">days to go</small></div><div class="wedding-timeline-copy"><strong data-en="Saturday, 10 June 2028" data-el="Σάββατο, 10 Ιουνίου 2028">Saturday, 10 June 2028</strong><span>The Barnyards Venues · Skarinou, Cyprus</span></div></div>
 <div class="status" id="status" role="status" aria-live="polite"></div>
@@ -421,7 +517,7 @@ function jumpToPlanningControl(elementId,focusId){
  const focus=$(focusId||elementId);if(focus&&typeof focus.focus==='function')focus.focus({preventScroll:true});
 }
 $('em-jump-invite').onclick=()=>jumpToPlanningControl('quick-invite-desk','quick-invite-name');
-$('em-jump-pending').onclick=()=>jumpToPlanningControl('quick-pending-list');
+$('em-jump-pending').onclick=()=>{ $('gm-search').value='';$('gm-filter').value='pending';$('gm-filter').dispatchEvent(new Event('change'));jumpToPlanningControl('quick-pending-list'); };
 $('quick-pending-list').setAttribute('tabindex','-1');
 $('refresh').onclick=load;window.addEventListener('focus',()=>{if(plan||budget)load()});window.addEventListener('storage',e=>{if(e.key==='em-checklist-v1')paint()});selectView(location.hash.slice(1),false);translate();load();
-</script><script src="./planning-invites.js?v=85" defer></script><script src="./planning-agents.js?v=81" defer></script></body></html>
+</script><script src="./planning-invites.js?v=88" defer></script><script src="./planning-agents.js?v=81" defer></script></body></html>
