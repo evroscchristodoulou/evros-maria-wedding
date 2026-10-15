@@ -33,7 +33,7 @@ function whatsapp(g){
 }
 function backup(){
  if(!loaded())return message(T('Load the guest list before exporting.','Φορτώστε τη λίστα πρώτα.'),true);
- const blob=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),plan},null,2)],{type:'application/json'});
+ const blob=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),plan,followupRecords:followup||{}},null,2)],{type:'application/json'});
  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;
  a.download='wedding-guest-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.append(a);a.click();a.remove();
  setTimeout(()=>URL.revokeObjectURL(url),1200);message(T('Backup downloaded. Keep it private.','Αντίγραφο αποθηκεύτηκε. Φυλάξτε το ιδιωτικά.'));
@@ -169,6 +169,7 @@ function card(g){
  actions.append(button('RSVP','RSVP',()=>openEditor(g.id,'rsvp'),'gm-accent'));
  actions.append(button('Edit','Αλλαγή',()=>openEditor(g.id,'edit')));
  if(g.needsReview)actions.append(button('✓ Approve','✓ Έγκριση',async()=>{
+  if(!window.confirm(T('Approve this unverified RSVP for '+g.name+'?', 'Έγκριση του μη επαληθευμένου RSVP για '+g.name+';')))return;
   await commit(d=>{const x=d.guests.find(x=>x.id===g.id);if(!x)return false;
    x.needsReview=false;x.updatedAt=new Date().toISOString();
   },'Guest approved for seating.','Ο καλεσμένος εγκρίθηκε.');
