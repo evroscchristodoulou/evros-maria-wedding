@@ -1,164 +1,262 @@
-/* Compact invitation actions for the Planning Centre.
- * Uses the existing version-protected guest plan. No automatic WhatsApp messages. */
+/* Single-screen wedding guest operations. Uses existing version-checked guest plan API. */
 (()=>{
-  'use strict';
-  const root=document.getElementById('quick-invite-desk');
-  if(!root)return;
-  const $=id=>document.getElementById(id);
-  const tr=(en,el)=>localStorage.getItem('wedding-lang')==='el'?el:en;
-  const strip=s=>String(s||'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('el').replace(/\s+/g,' ');
-  const linkFor=g=>{const u=new URL('./rsvp.html',location.href);u.searchParams.set('invitation',g.name);return u.href;};
-  let busy=false;
-
-  function message(text,isError=false){
-    $('quick-invite-status').textContent=text;
-    $('quick-invite-status').style.color=isError?'#9e5148':'#706252';
+'use strict';
+const root=document.getElementById('quick-invite-desk');
+if(!root)return;
+const E=id=>document.getElementById(id);
+const T=(en,gr)=>localStorage.getItem('wedding-lang')==='el'?gr:en;
+const norm=s=>String(s||'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('el').replace(/\s+/g,' ');
+const reply=g=>g.rsvp==='yes'?'yes':g.rsvp==='no'?'no':'pending';
+const count=g=>g.rsvp==='yes'&&Number.isInteger(g.adults)&&Number.isInteger(g.children)&&g.adults+g.children>0?g.adults+g.children:Math.max(1,Number(g.partySize)||1);
+const loaded=()=>plan&&Array.isArray(plan.guests)&&Array.isArray(plan.tables)&&typeof plan.revision==='string';
+let saving=false,page=1,active=null;
+const node=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e;};
+const button=(en,gr,fn,cls)=>{const b=node('button',cls||'',T(en,gr));b.type='button';b.onclick=fn;return b;};
+const field=(en,gr,input,cls)=>{const l=node('label',cls||'');l.append(node('span','',T(en,gr)),input);return l;};
+const textInput=(value,max)=>{const i=document.createElement('input');i.type='text';i.value=value;i.maxLength=max;return i;};
+const numInput=(val,max,label)=>{const i=document.createElement('input');i.type='number';i.min='0';i.max=String(max);i.step='1';i.inputMode='numeric';i.placeholder='0';i.value=val===null?'':String(val);i.setAttribute('aria-label',label);return i;};
+function message(text,error=false){const el=E('quick-invite-status');el.textContent=text;el.style.color=error?'#9a4f43':'#645443';}
+function keepCopy(p){
+ try{const key='em-wedding-guestplan-recovery-v1';const previous=JSON.parse(localStorage.getItem(key)||'null');
+ if(p?.guests?.length>(previous?.guests?.length||0))localStorage.setItem(key,JSON.stringify(p));}catch{}
+}
+function shareUrl(g){const u=new URL('./rsvp.html',location.href);u.searchParams.set('invitation',g.name);return u.href;}
+async function copy(g){
+ const url=shareUrl(g);try{if(!navigator.clipboard?.writeText)throw Error('Unavailable');
+ await navigator.clipboard.writeText(url);message(T('Link copied for ','Αντιγράφηκε σύνδεσμος για ')+g.name);}
+ catch{window.prompt(T('Copy the invitation link','Αντιγράψτε τον σύνδεσμο'),url);}
+}
+function whatsapp(g){
+ const m=T('Hello '+g.name+'! We would love to celebrate together. Please RSVP here: ',
+ 'Γεια σας '+g.name+'! Θα χαρούμε να γιορτάσουμε μαζί. Παρακαλούμε απαντήστε: ')+shareUrl(g);
+ window.open('https://wa.me/?text='+encodeURIComponent(m),'_blank','noopener,noreferrer');
+}
+function backup(){
+ if(!loaded())return message(T('Load the guest list before exporting.','Φορτώστε τη λίστα πρώτα.'),true);
+ const blob=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),plan},null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;
+ a.download='wedding-guest-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.append(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1200);message(T('Backup downloaded. Keep it private.','Αντίγραφο αποθηκεύτηκε. Φυλάξτε το ιδιωτικά.'));
+}
+async function commit(mutate,en,gr,deleted=[]){
+ if(saving)return false;
+ if(!loaded()){message(T('Guest data is unavailable. Refresh first.','Δεν υπάρχουν δεδομένα. Κάντε ανανέωση.'),true);return false;}
+ const base=plan,draft=JSON.parse(JSON.stringify(base));
+ const applied=mutate(draft);if(applied===false)return false;
+ keepCopy(base);saving=true;root.setAttribute('aria-busy','true');
+ try{
+  const res=await fetch(API+'/wedding/guest-plan',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({...draft,deletedGuestIds:deleted}),cache:'no-store'});
+  const data=await res.json().catch(()=>({error:'Invalid response'}));
+  if(!res.ok){
+   if(res.status===409){
+    message(T('Another update arrived. Refreshing; please review and retry.','Υπήρξε νεότερη αλλαγή. Ανανεώνεται η λίστα· ελέγξτε και δοκιμάστε ξανά.'),true);
+    await load();return false;
+   }
+   throw Error(data.error||'Save failed');
   }
-  function button(label,onclick){
-    const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=onclick;return b;
-  }
-  function copyInvite(g){
-    const url=linkFor(g);
-    if(!navigator.clipboard?.writeText){window.prompt(tr('Copy invitation link:','Αντιγράψτε τον σύνδεσμο:'),url);return;}
-    navigator.clipboard.writeText(url).then(
-      ()=>message(tr('Invitation link copied for ','Ο σύνδεσμος πρόσκλησης αντιγράφηκε για ')+g.name),
-      ()=>window.prompt(tr('Copy invitation link:','Αντιγράψτε τον σύνδεσμο:'),url)
-    );
-  }
-  function whatsappInvite(g){
-    const msg=tr(
-      'Hello '+g.name+'! We would love to celebrate together. Please reply to your invitation here: ',
-      'Γεια σας '+g.name+'! Θα χαρούμε να γιορτάσουμε μαζί. Παρακαλούμε απαντήστε στην πρόσκλησή σας εδώ: '
-    )+linkFor(g);
-    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank','noopener,noreferrer');
-  }
-  function makeShareButtons(target,g){
-    target.append(button(tr('WhatsApp ↗','WhatsApp ↗'),()=>whatsappInvite(g)));
-    target.append(button(tr('Copy link','Αντιγραφή'),()=>copyInvite(g)));
-  }
-  async function savePlan(updated){
-    if(busy)return false;
-    if(!plan||!Array.isArray(plan.guests)||typeof plan.revision!=='string'){
-      message(tr('Guest list is not ready. Refresh the dashboard.','Η λίστα δεν είναι έτοιμη. Ανανεώστε τον πίνακα.'),true);
-      return false;
-    }
-    busy=true;root.setAttribute('aria-busy','true');
-    try{
-      const r=await fetch(API+'/wedding/guest-plan',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(updated),cache:'no-store'
-      });
-      const body=await r.json().catch(()=>({error:'Unexpected response'}));
-      if(!r.ok)throw Error(body.error||'Could not save');
-      if(!Array.isArray(body.plan?.guests)||typeof body.plan.revision!=='string')throw Error('Save was not verified');
-      plan=body.plan;
-      paint();
-      document.dispatchEvent(new Event('wedding:planning-updated'));
-      return true;
-    }catch(err){
-      message(tr('Could not save: ','Αποτυχία αποθήκευσης: ')+err.message,true);
-      if(/changed|stale|refresh/i.test(err.message))load();
-      return false;
-    }finally{
-      busy=false;root.removeAttribute('aria-busy');
-    }
-  }
-  function clearCreated(){const out=$('quick-invite-created');out.replaceChildren();out.hidden=true;}
-  $('quick-invite-form').addEventListener('submit',async ev=>{
-    ev.preventDefault();if(busy)return;
-    const name=$('quick-invite-name').value.trim();
-    const adultsText=$('quick-invite-adults').value.trim();
-    const childrenText=$('quick-invite-children').value.trim();
-    const adults=Number(adultsText),children=childrenText===''?0:Number(childrenText);
-    if(name.length<2||!Number.isInteger(adults)||!Number.isInteger(children)||adults<0||children<0||adults+children<1||adults+children>30||adultsText===''){
-      message(tr('Enter a name and explicit invited numbers (1–30 people).','Συμπληρώστε όνομα και αριθμό προσκεκλημένων (1–30 άτομα).'),true);return;
-    }
-    if(!plan||!Array.isArray(plan.guests)){message(tr('Load the Guest List before adding invitations.','Φορτώστε τη λίστα καλεσμένων πριν την προσθήκη.'),true);return;}
-    if(plan.guests.some(g=>strip(g.name)===strip(name))){
-      message(tr('That name already exists. Use the pending list below or the Guest List to avoid duplicates.','Το όνομα υπάρχει ήδη. Επιλέξτε το από τη λίστα ώστε να μη δημιουργηθεί διπλό.'),true);
-      return;
-    }
-    const guest={id:crypto.randomUUID(),name,partySize:adults+children,invitedAdults:adults,invitedChildren:children,rsvp:'pending',tableId:''};
-    const updated={...plan,guests:[...plan.guests,guest]};
-    if(!await savePlan(updated))return;
-    $('quick-invite-form').reset();
-    const actual=plan.guests.find(g=>g.id===guest.id)||guest;
-    const out=$('quick-invite-created');out.replaceChildren();out.hidden=false;
-    const info=document.createElement('span');info.textContent=tr('Added as awaiting RSVP: ','Προστέθηκε σε αναμονή RSVP: ')+actual.name+' · ';
-    out.append(info);makeShareButtons(out,actual);
-    message(tr('Invitation saved. Use WhatsApp or Copy link to share it; it has not been sent automatically.','Η πρόσκληση αποθηκεύτηκε. Κοινοποιήστε τη μέσω WhatsApp ή αντιγραφής· δεν εστάλη αυτόματα.'));
-    $('quick-invite-name').focus();
-  });
-
-  function attendanceForm(guest,actions){
-    // Both boxes are intentionally unchecked for unanswered invitations.
-    const yes=document.createElement('input'),no=document.createElement('input');
-    yes.type=no.type='checkbox';yes.checked=false;no.checked=false;
-    const label=(field,en,el)=>{const elmt=document.createElement('label');elmt.append(field,document.createTextNode(tr(en,el)));return elmt;};
-    actions.append(label(yes,'Attending','Θα έρθει'),label(no,'Declined','Δεν θα έρθει'));
-    const editor=document.createElement('div');editor.className='quick-pending-counts';editor.hidden=true;
-    const adults=document.createElement('input'),children=document.createElement('input');
-    adults.type=children.type='number';adults.min=children.min='0';
-    adults.max=String(guest.invitedAdults??guest.partySize);children.max=String(guest.invitedChildren??0);
-    adults.placeholder=children.placeholder='0';adults.value=children.value='';
-    adults.setAttribute('aria-label',tr('Attending adults','Ενήλικες που θα έρθουν'));
-    children.setAttribute('aria-label',tr('Attending children','Παιδιά που θα έρθουν'));
-    const saveBtn=button(tr('Save response','Αποθήκευση'),async()=>{
-      if(busy)return;
-      const isYes=yes.checked,isNo=no.checked;
-      if(isYes===isNo)return;
-      const a=isYes?(adults.value.trim()===''?0:Number(adults.value)):0;
-      const c=isYes?(children.value.trim()===''?0:Number(children.value)):0;
-      if(isYes&&adults.value.trim()===''&&children.value.trim()===''){
-        message(tr('Enter the confirmed number of adults and/or children.','Συμπληρώστε πόσοι ενήλικες ή/και παιδιά θα έρθουν.'),true);adults.focus();return;
-      }
-      if(!Number.isInteger(a)||!Number.isInteger(c)||a<0||c<0||a+c>30||
-        isYes&&(a+c<1||a>Number(adults.max)||c>Number(children.max))){
-        message(tr('Confirm numbers within the original invitation.','Ελέγξτε ότι οι αριθμοί είναι εντός πρόσκλησης.'),true);return;
-      }
-      if(!plan)return;
-      const current=plan.guests.find(g=>g.id===guest.id);
-      if(!current||current.rsvp!=='pending'){
-        message(tr('This RSVP has changed. Refresh before saving.','Η απάντηση έχει αλλάξει. Ανανεώστε τη λίστα.'),true);return;
-      }
-      const updated={...plan,guests:plan.guests.map(g=>g.id===guest.id?
-        {...g,rsvp:isYes?'yes':'no',adults:a,children:c,tableId:isYes?(g.tableId||''):'',updatedAt:new Date().toISOString()}:g)};
-      if(await savePlan(updated))message(tr('RSVP recorded for ','Καταχωρίστηκε RSVP για ')+guest.name);
-    });
-    editor.append(document.createTextNode(tr('Adults','Ενήλικες')),adults,
-      document.createTextNode(tr('Children','Παιδιά')),children,saveBtn);
-    const toggle=(chosen,other)=>{
-      if(chosen.checked)other.checked=false;
-      editor.hidden=!(yes.checked||no.checked);
-      adults.disabled=children.disabled=!yes.checked;
-    };
-    yes.onchange=()=>toggle(yes,no);no.onchange=()=>toggle(no,yes);
-    return editor;
-  }
-  function render(){
-    const area=$('quick-pending-list'),total=$('quick-pending-count');
-    area.replaceChildren();
-    if(!plan||!Array.isArray(plan.guests)){
-      total.textContent='—';
-      const p=document.createElement('p');p.textContent=tr('Loading RSVP records…','Φόρτωση RSVP…');area.append(p);
-      $('quick-invite-submit').disabled=true;return;
-    }
-    $('quick-invite-submit').disabled=false;
-    const pending=plan.guests.filter(g=>g.rsvp!=='yes'&&g.rsvp!=='no'&&!g.needsReview)
-      .sort((a,b)=>a.name.localeCompare(b.name,localStorage.getItem('wedding-lang')==='el'?'el':'en',{sensitivity:'base'}));
-    total.textContent='('+pending.length+')';
-    if(!pending.length){const p=document.createElement('p');p.textContent=tr('No unanswered invitations.','Δεν υπάρχουν αναπάντητες προσκλήσεις.');area.append(p);return;}
-    for(const g of pending.slice(0,50)){
-      const row=document.createElement('div');row.className='quick-pending-row';
-      const name=document.createElement('strong');name.className='quick-pending-name';name.textContent=g.name;
-      const actions=document.createElement('div');actions.className='quick-pending-actions';
-      makeShareButtons(actions,g);
-      const editor=attendanceForm(g,actions);
-      row.append(name,actions,editor);area.append(row);
-    }
-    if(pending.length>50){const p=document.createElement('p');p.style.fontSize='11px';p.textContent=tr('Showing 50 invitations. Open RSVP Follow-up for the rest.','Εμφανίζονται 50 προσκλήσεις. Δείτε τις υπόλοιπες στις υπενθυμίσεις RSVP.');area.append(p);}
-  }
-  document.addEventListener('wedding:planning-updated',render);
-  document.getElementById('language')?.addEventListener('click',()=>setTimeout(render,0));
-  clearCreated();render();
+  if(!Array.isArray(data.plan?.guests)||typeof data.plan.revision!=='string')throw Error('Save not verified');
+  plan=data.plan;keepCopy(plan);active=null;
+  paint();document.dispatchEvent(new Event('wedding:planning-updated'));
+  message(T(en,gr));return true;
+ }catch(e){message(T('Not saved: ','Δεν αποθηκεύτηκε: ')+e.message,true);return false;}
+ finally{saving=false;root.removeAttribute('aria-busy');}
+}
+function current(id){return plan?.guests?.find(x=>x.id===id);}
+function available(table,ignoreId){return Number(table.capacity)-(plan?.guests||[])
+ .filter(g=>g.id!==ignoreId&&reply(g)==='yes'&&g.tableId===table.id).reduce((sum,g)=>sum+count(g),0);}
+function openEditor(id,mode){active=active?.id===id&&active.mode===mode?null:{id,mode};render();}
+function editor(g){
+ const section=node('div','gm-inline');const kind=active.mode;
+ section.append(node('h3','',kind==='rsvp'?T('Record attendance','Καταγραφή παρουσίας'):T('Edit invitation','Αλλαγή πρόσκλησης')));
+ const fields=node('div','gm-fields');
+ if(kind==='edit'){
+  const name=textInput(g.name,100),adults=numInput(g.invitedAdults??g.partySize,30,T('Adults invited','Ενήλικες')),
+   children=numInput(g.invitedChildren??0,30,T('Children invited','Παιδιά'));
+  fields.append(field('Name','Όνομα',name,'gm-field-grow'),field('Invited adults','Ενήλικες',adults),field('Children','Παιδιά',children));
+  fields.append(button('Save changes','Αποθήκευση',async()=>{
+   const n=name.value.trim(),a=Number(adults.value),c=Number(children.value);
+   if(n.length<2||adults.value.trim()===''||children.value.trim()===''||!Number.isInteger(a)||!Number.isInteger(c)||a<0||c<0||a+c<1||a+c>30){
+    message(T('Enter a name and valid invited numbers.','Συμπληρώστε όνομα και έγκυρους αριθμούς.'),true);return;}
+   if(plan.guests.some(x=>x.id!==g.id&&norm(x.name)===norm(n))){
+    message(T('That name already exists.','Το όνομα υπάρχει ήδη.'),true);return;}
+   if(g.rsvp==='yes'&&((g.adults??0)>a||(g.children??0)>c)){
+    message(T('Confirmed attendance exceeds the new invitation. Update RSVP first.','Η επιβεβαιωμένη παρουσία υπερβαίνει τη νέα πρόσκληση. Αλλάξτε πρώτα το RSVP.'),true);return;}
+   await commit(d=>{const x=d.guests.find(x=>x.id===g.id);if(!x)return false;
+    x.name=n;x.invitedAdults=a;x.invitedChildren=c;x.partySize=a+c;
+   },'Invitation updated.','Η πρόσκληση ενημερώθηκε.');
+  },'gm-dark'));
+ }else{
+  section.append(node('p','',T('Select an answer deliberately. Neither option is preselected.','Επιλέξτε μία απάντηση. Καμία επιλογή δεν είναι προεπιλεγμένη.')));
+  const yes=document.createElement('input'),no=document.createElement('input');yes.type=no.type='checkbox';
+  yes.checked=no.checked=false;
+  const option=(input,en,gr)=>{const l=node('label','gm-choice');l.append(input,document.createTextNode(T(en,gr)));return l;};
+  const choices=node('div','gm-actions-more');choices.append(option(yes,'Attending','Θα έρθει'),option(no,'Declined','Δεν θα έρθει'));
+  section.append(choices);
+  const adults=numInput(null,g.invitedAdults??g.partySize,T('Confirmed adults','Επιβεβαιωμένοι ενήλικες'));
+  const children=numInput(null,g.invitedChildren??0,T('Confirmed children','Επιβεβαιωμένα παιδιά'));
+  const countFields=node('div','gm-fields');countFields.append(field('Adults','Ενήλικες',adults),field('Children','Παιδιά',children));countFields.hidden=true;
+  section.append(countFields);
+  const update=(chosen,other)=>{if(chosen.checked)other.checked=false;countFields.hidden=!yes.checked;};
+  yes.onchange=()=>update(yes,no);no.onchange=()=>update(no,yes);
+  fields.append(button('Save RSVP','Αποθήκευση RSVP',async()=>{
+   if(yes.checked===no.checked){message(T('Choose attending or declined first.','Επιλέξτε παρουσία ή απουσία.'),true);return;}
+   const attending=yes.checked,adultText=adults.value.trim(),childText=children.value.trim();
+   if(attending&&adultText===''&&childText===''){message(T('Enter attending adults or children.','Συμπληρώστε πόσοι θα έρθουν.'),true);return;}
+   const a=attending?(adultText===''?0:Number(adultText)):0,c=attending?(childText===''?0:Number(childText)):0;
+   if(!Number.isInteger(a)||!Number.isInteger(c)||a<0||c<0||attending&&(a+c<1||a>(g.invitedAdults??g.partySize)||c>(g.invitedChildren??0))){
+    message(T('Attendance counts are invalid for this invitation.','Λανθασμένοι αριθμοί συμμετοχής.'),true);return;}
+   await commit(d=>{const x=d.guests.find(x=>x.id===g.id);if(!x)return false;
+    x.rsvp=attending?'yes':'no';x.adults=a;x.children=c;x.updatedAt=new Date().toISOString();if(!attending)x.tableId='';
+   },'RSVP saved.','Το RSVP αποθηκεύτηκε.');
+  },'gm-dark'));
+  fields.append(button('Reset to pending','Επαναφορά σε αναμονή',async()=>{
+   if(!window.confirm(T('Reset to unanswered and clear any table assignment?','Επαναφορά σε αναμονή και αφαίρεση τραπεζιού;')))return;
+   await commit(d=>{const x=d.guests.find(x=>x.id===g.id);if(!x)return false;
+    x.rsvp='pending';x.adults=0;x.children=0;x.tableId='';x.updatedAt=new Date().toISOString();
+   },'RSVP reset to unanswered.','Το RSVP έγινε ξανά αναπάντητο.');
+  }));
+ }
+ fields.append(button('Cancel','Ακύρωση',()=>{active=null;render();}));
+ section.append(fields);return section;
+}
+function tableSelect(g){
+ const l=node('label','gm-seat-label');l.append(node('span','',T('Table:','Τραπέζι:')));
+ const select=document.createElement('select');select.setAttribute('aria-label',T('Seat assignment for ','Τραπέζι για ')+g.name);
+ const none=node('option','',T('— Unassigned —','— Χωρίς τραπέζι —'));none.value='';select.append(none);
+ for(const t of plan.tables){
+  const free=available(t,g.id);const opt=node('option','',t.name+' · '+Math.max(0,free)+' '+T('free','ελεύθερες'));
+  opt.value=t.id;opt.disabled=t.id!==g.tableId&&free<count(g);select.append(opt);
+ }
+ select.value=g.tableId||'';select.disabled=!!g.needsReview||saving;
+ select.onchange=async()=>{
+  const chosen=select.value,prior=g.tableId||'';if(chosen===prior)return;
+  const t=plan.tables.find(x=>x.id===chosen);
+  if(t&&available(t,g.id)<count(g)){message(T('Not enough seats at this table.','Δεν υπάρχουν αρκετές θέσεις.'),true);select.value=prior;return;}
+  select.disabled=true;
+  const ok=await commit(d=>{const x=d.guests.find(x=>x.id===g.id);if(!x||x.rsvp!=='yes'||x.needsReview)return false;x.tableId=chosen;},
+    'Table assignment saved.','Το τραπέζι αποθηκεύτηκε.');
+  if(!ok)select.value=prior;select.disabled=false;
+ };
+ l.append(select);return l;
+}
+async function markSent(g){
+ if(saving)return;saving=true;root.setAttribute('aria-busy','true');
+ try{
+  const old=followup?.[g.id]?.invitationSentAt,action=old?'clear-invited':'invited';
+  const res=await fetch(API+'/wedding/rsvp-followup',{method:'POST',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({id:g.id,action}),cache:'no-store'});
+  const data=await res.json().catch(()=>({}));if(!res.ok)throw Error(data.error||'Status failed');
+  if(!followup)followup={};followup[g.id]=data.entry;
+  paint();document.dispatchEvent(new Event('wedding:planning-updated'));
+  message(action==='invited'?T('Marked sent. No message was sent automatically.','Σημειώθηκε ως σταλμένη, χωρίς αυτόματη αποστολή.'):
+   T('Sent flag cleared.','Αφαιρέθηκε η ένδειξη αποστολής.'));
+ }catch(e){message(T('Could not mark invitation: ','Αποτυχία ενημέρωσης: ')+e.message,true);}
+ finally{saving=false;root.removeAttribute('aria-busy');}
+}
+function card(g){
+ const card=node('article','gm-row'),top=node('div','gm-row-top');
+ const id=node('div','gm-identity');
+ id.append(node('strong','',g.name),node('small','',T('Invited: ','Προσκεκλημένοι: ')+(g.invitedAdults??g.partySize)+' '+T('adults','ενήλικες')+' · '+(g.invitedChildren??0)+' '+T('children','παιδιά')));
+ const actions=node('div','gm-actions'),s=g.needsReview?'review':reply(g);
+ const caption=g.needsReview?T('Review RSVP','Για έλεγχο'):s==='yes'?T('Attending','Θα έρθει'):s==='no'?T('Declined','Αρνήθηκε'):T('Awaiting','Αναμονή');
+ actions.append(node('span','gm-status-pill '+s+(g.needsReview?' review':''),caption));
+ actions.append(button('WhatsApp ↗','WhatsApp ↗',()=>whatsapp(g)));
+ actions.append(button('Copy link','Αντιγραφή',()=>copy(g)));
+ actions.append(button('RSVP','RSVP',()=>openEditor(g.id,'rsvp'),'gm-accent'));
+ actions.append(button('Edit','Αλλαγή',()=>openEditor(g.id,'edit')));
+ if(g.needsReview)actions.append(button('✓ Approve','✓ Έγκριση',async()=>{
+  await commit(d=>{const x=d.guests.find(x=>x.id===g.id);if(!x)return false;
+   x.needsReview=false;x.updatedAt=new Date().toISOString();
+  },'Guest approved for seating.','Ο καλεσμένος εγκρίθηκε.');
+ }));
+ actions.append(button('Remove','Αφαίρεση',async()=>{
+  if(!window.confirm(T('Remove '+g.name+' from the list and their table? Export a backup first if needed.',
+   'Αφαίρεση '+g.name+' από τη λίστα και το τραπέζι; Κατεβάστε πρώτα αντίγραφο εάν χρειάζεται.')))return;
+  await commit(d=>{d.guests=d.guests.filter(x=>x.id!==g.id);},'Guest removed.','Ο καλεσμένος αφαιρέθηκε.',[g.id]);
+ }));
+ top.append(id,actions);card.append(top);
+ const details=node('div','gm-row-details');
+ const sent=followup?.[g.id]?.invitationSentAt;
+ details.append(button(sent?'✓ Sent':'Mark sent',sent?'✓ Εστάλη':'Καταγραφή αποστολής',()=>markSent(g)));
+ if(s==='yes'){
+  details.append(node('span','',T('Confirmed: ','Επιβεβαίωσαν: ')+count(g)+' '+T('people','άτομα')));
+  if(!g.needsReview)details.append(tableSelect(g));else details.append(node('span','',T('Approve before seating.','Εγκρίνετε πριν την τοποθέτηση σε τραπέζι.')));
+ }else if(s==='no')details.append(node('span','',T('No seating required','Δεν χρειάζεται τραπέζι')));
+ else details.append(node('span','',T('Awaiting attendance choice','Αναμονή απάντησης')));
+ card.append(details);
+ if(active?.id===g.id)card.append(editor(g));
+ return card;
+}
+function tableSummary(){
+ const area=E('gm-table-summary');area.replaceChildren();
+ E('gm-table-count').textContent=loaded()?'('+plan.tables.length+')':'—';
+ if(!loaded())return;
+ if(!plan.tables.length){area.append(node('span','',T('No tables yet. Create one below.','Δεν υπάρχουν τραπέζια. Προσθέστε ένα παρακάτω.')));return;}
+ for(const table of plan.tables){
+  const used=plan.guests.filter(g=>reply(g)==='yes'&&g.tableId===table.id).reduce((n,g)=>n+count(g),0);
+  area.append(node('span','',table.name+' · '+used+' / '+table.capacity));
+ }
+}
+function render(){
+ const list=E('quick-pending-list');list.replaceChildren();
+ E('quick-invite-submit').disabled=!loaded()||saving;E('gm-add-table').disabled=!loaded()||saving;
+ if(!loaded()){list.append(node('p','gm-helper',T('Loading guest records…','Φόρτωση καλεσμένων…')));return;}
+ const all=plan.guests,states={pending:0,yes:0,no:0,unseated:0};
+ const tableIds=new Set(plan.tables.map(t=>t.id));
+ for(const g of all){states[reply(g)]++;if(reply(g)==='yes'&&(!g.tableId||!tableIds.has(g.tableId)))states.unseated+=count(g);}
+ for(const [id,val] of [['gm-total-count',all.length],['quick-pending-count',states.pending],['gm-confirmed-count',states.yes],['gm-declined-count',states.no],['gm-unseated-count',states.unseated]])E(id).textContent=val;
+ tableSummary();
+ const query=norm(E('gm-search').value),filter=E('gm-filter').value;
+ const matches=all.filter(g=>{
+  if(query&&!norm(g.name).includes(query))return false;
+  if(filter==='all')return true;
+  if(filter==='review')return !!g.needsReview;
+  if(filter==='unseated')return reply(g)==='yes'&&(!g.tableId||!tableIds.has(g.tableId));
+  return reply(g)===filter;
+ }).sort((a,b)=>a.name.localeCompare(b.name,localStorage.getItem('wedding-lang')==='el'?'el':'en',{sensitivity:'base'}));
+ const pages=Math.max(1,Math.ceil(matches.length/12));page=Math.max(1,Math.min(page,pages));
+ const start=(page-1)*12;
+ for(const g of matches.slice(start,start+12))list.append(card(g));
+ if(!matches.length)list.append(node('p','gm-helper',T('No guests match this filter.','Δεν βρέθηκαν καλεσμένοι με αυτό το φίλτρο.')));
+ E('gm-page-info').textContent=matches.length?(start+1)+'–'+Math.min(start+12,matches.length)+' / '+matches.length:'0';
+ E('gm-prev').disabled=page<=1;E('gm-next').disabled=page>=pages;
+}
+E('quick-invite-form').addEventListener('submit',async event=>{
+ event.preventDefault();
+ const name=E('quick-invite-name').value.trim(),rawA=E('quick-invite-adults').value.trim(),rawC=E('quick-invite-children').value.trim();
+ const a=Number(rawA),c=rawC===''?0:Number(rawC);
+ if(name.length<2||rawA===''||!Number.isInteger(a)||!Number.isInteger(c)||a<0||c<0||a+c<1||a+c>30){
+  message(T('Enter a name and 1–30 invited people.','Εισάγετε όνομα και 1–30 προσκεκλημένους.'),true);return;}
+ if((plan?.guests||[]).some(g=>norm(g.name)===norm(name))){
+  message(T('This name already exists. Use the list to edit it.','Αυτό το όνομα υπάρχει ήδη. Κάντε αλλαγή από τη λίστα.'),true);return;}
+ const guest={id:crypto.randomUUID(),name,invitedAdults:a,invitedChildren:c,partySize:a+c,rsvp:'pending',tableId:''};
+ const saved=await commit(d=>{d.guests.push(guest);},'Guest added as unanswered. Share their invitation link below.',
+  'Ο καλεσμένος προστέθηκε σε αναμονή. Κοινοποιήστε τον σύνδεσμο.');
+ if(!saved)return;
+ E('quick-invite-form').reset();E('gm-filter').value='all';E('gm-search').value=name;page=1;render();
+ const out=E('quick-invite-created');out.replaceChildren();out.hidden=false;
+ out.append(node('span','',T('Added: ','Προστέθηκε: ')+name+' · '),
+  button('WhatsApp ↗','WhatsApp ↗',()=>whatsapp(guest)),button('Copy link','Αντιγραφή',()=>copy(guest)));
+});
+E('gm-table-form').addEventListener('submit',async event=>{
+ event.preventDefault();const name=E('gm-table-name').value.trim(),raw=E('gm-table-capacity').value.trim(),capacity=Number(raw);
+ if(!name||!raw||!Number.isInteger(capacity)||capacity<1||capacity>50){
+  message(T('Enter a table name and 1–50 seats.','Συμπληρώστε όνομα τραπεζιού και 1–50 θέσεις.'),true);return;}
+ if((plan?.tables||[]).some(t=>norm(t.name)===norm(name))){message(T('This table name already exists.','Το τραπέζι υπάρχει ήδη.'),true);return;}
+ if(plan.tables.length>=100){message(T('Table limit reached.','Φτάσατε το όριο τραπεζιών.'),true);return;}
+ const newTable={id:crypto.randomUUID(),name,capacity};
+ if(await commit(d=>{d.tables.push(newTable)},'Table created. Assign confirmed guests above.','Το τραπέζι δημιουργήθηκε. Τοποθετήστε καλεσμένους.')){
+  E('gm-table-form').reset();E('gm-table-tools').open=true;render();
+ }
+});
+E('gm-backup').onclick=backup;
+E('gm-refresh').onclick=async()=>{if(saving)return;await load();message(T('Guest records refreshed.','Η λίστα ανανεώθηκε.'));render();};
+E('gm-search').oninput=()=>{page=1;active=null;render();};
+E('gm-filter').onchange=()=>{page=1;active=null;render();};
+E('gm-prev').onclick=()=>{if(page>1){page--;active=null;render();}};
+E('gm-next').onclick=()=>{page++;active=null;render();};
+document.addEventListener('wedding:planning-updated',render);
+E('language')?.addEventListener('click',()=>setTimeout(render,0));
+render();
 })();
