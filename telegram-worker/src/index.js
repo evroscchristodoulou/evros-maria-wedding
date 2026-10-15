@@ -366,7 +366,7 @@ export default {
         const pageParam=Number(url.searchParams.get('page')||1);
         if(!Number.isInteger(pageParam)||pageParam<1||pageParam>100)return json({error:'Invalid page'},400);
         const current=await effectiveGuestPlan();
-        const pending=current.guests.filter(g=>g.rsvp==='pending'&&!g.needsReview)
+        const pending=current.guests.filter(g=>g.rsvp!=='yes'&&g.rsvp!=='no'&&!g.needsReview)
           .sort((a,b)=>a.name.localeCompare(b.name,'el',{sensitivity:'base'}));
         const perPage=12,start=(pageParam-1)*perPage;
         const matches=pending.slice(start,start+perPage).map(g=>({id:g.id,name:g.name,invitedAdults:g.invitedAdults??g.partySize,invitedChildren:g.invitedChildren??0}));
