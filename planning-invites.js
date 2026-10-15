@@ -89,7 +89,7 @@
     $('quick-invite-name').focus();
   });
 
-  function attendanceForm(guest,row,actions){
+  function attendanceForm(guest,actions){
     // Both boxes are intentionally unchecked for unanswered invitations.
     const yes=document.createElement('input'),no=document.createElement('input');
     yes.type=no.type='checkbox';yes.checked=false;no.checked=false;
@@ -126,13 +126,13 @@
     });
     editor.append(document.createTextNode(tr('Adults','Ενήλικες')),adults,
       document.createTextNode(tr('Children','Παιδιά')),children,saveBtn);
-    row.append(editor);
     const toggle=(chosen,other)=>{
       if(chosen.checked)other.checked=false;
       editor.hidden=!(yes.checked||no.checked);
       adults.disabled=children.disabled=!yes.checked;
     };
     yes.onchange=()=>toggle(yes,no);no.onchange=()=>toggle(no,yes);
+    return editor;
   }
   function render(){
     const area=$('quick-pending-list'),total=$('quick-pending-count');
@@ -152,8 +152,8 @@
       const name=document.createElement('strong');name.className='quick-pending-name';name.textContent=g.name;
       const actions=document.createElement('div');actions.className='quick-pending-actions';
       makeShareButtons(actions,g);
-      attendanceForm(g,row,actions);
-      row.prepend(name);row.append(actions);area.append(row);
+      const editor=attendanceForm(g,actions);
+      row.append(name,actions,editor);area.append(row);
     }
     if(pending.length>50){const p=document.createElement('p');p.style.fontSize='11px';p.textContent=tr('Showing 50 invitations. Open RSVP Follow-up for the rest.','Εμφανίζονται 50 προσκλήσεις. Δείτε τις υπόλοιπες στις υπενθυμίσεις RSVP.');area.append(p);}
   }
