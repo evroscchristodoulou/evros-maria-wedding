@@ -91,6 +91,36 @@ main{padding-top:35px}.head-row h1{font-size:clamp(45px,6vw,70px)}.head-row p{ma
 .em-advisor-answer{padding:8px 11px;font-size:11px}
 .em-advisor-note{margin:6px 0 10px;font-size:9px}
 @media(max-width:560px){.em-advisor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style><style>
+/* Compact invitation desk: invitations from the dashboard, no extra navigation */
+.quick-invite-desk{border:1px solid #dcd5ca;background:linear-gradient(125deg,#fffdfa,#f5f0e9);padding:17px 19px 12px;margin:12px 0 16px}
+.quick-invite-head{display:flex;justify-content:space-between;align-items:center;gap:14px}
+.quick-invite-head h2{font:400 32px/1.1 'Cormorant Garamond',Georgia,serif;margin:3px 0 13px}
+.quick-invite-head>a,.quick-invite-list-head>a{font-size:11px;color:#725f49;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.quick-invite-form{display:grid;grid-template-columns:minmax(160px,1fr) 115px 110px auto;align-items:end;gap:9px}
+.quick-invite-form label{display:block;font-size:10px;color:#74695d;min-width:0}
+.quick-invite-form label span{display:block;margin:0 0 5px}
+.quick-invite-form input{display:block;width:100%;border:1px solid #d9d0c3;background:#fffdfa;border-radius:2px;padding:10px 11px;font:400 12px Inter,Arial,sans-serif;color:#292622}
+.quick-invite-form button{border:1px solid #292622;background:#292622;color:white;font:500 11px Inter,Arial,sans-serif;padding:11px 14px;white-space:nowrap;min-height:39px}
+.quick-invite-note{font-size:10px;margin:7px 0 10px}
+.quick-invite-list-head{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #e2d9cf;padding:9px 0 6px}
+.quick-invite-list-head strong{font-size:11px;font-weight:500}
+.quick-pending-list{display:grid;gap:5px;max-height:216px;overflow-y:auto;overscroll-behavior:contain}
+.quick-pending-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;background:#fffdfa;border:1px solid #e5ded3}
+.quick-pending-name{font-size:12px;min-width:0;overflow-wrap:anywhere}
+.quick-pending-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.quick-pending-actions button,.quick-invite-created button{border:1px solid #d6c8b7;background:#fffdfa;color:#45392d;font:400 10px Inter,Arial,sans-serif;padding:6px 9px;cursor:pointer;white-space:nowrap}
+.quick-pending-actions button:hover,.quick-invite-created button:hover{background:#efe7dc}
+.quick-pending-actions label{display:flex;align-items:center;gap:4px;font-size:10px;color:#544839;cursor:pointer;white-space:nowrap}
+.quick-pending-actions input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:#715c46}
+.quick-pending-counts{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 0 1px;font-size:10px}
+.quick-pending-counts input{width:58px;border:1px solid #d9d0c3;background:#fffdfa;padding:6px;font:400 11px Inter,sans-serif}
+.quick-pending-counts button{border:1px solid #292622;background:#292622;color:#fff;font:400 10px Inter,sans-serif;padding:6px 9px;cursor:pointer}
+.quick-invite-created{padding:8px 10px;border:1px solid #d9ccb9;background:#fff8ed;margin:8px 0;font-size:11px}
+.quick-invite-created[hidden]{display:none}
+.quick-invite-desk .status{margin-top:7px;font-size:11px;min-height:0}
+@media(max-width:780px){.quick-invite-form{grid-template-columns:minmax(0,1fr) minmax(84px,100px) minmax(84px,100px)}.quick-invite-form label:first-child{grid-column:1/-1}.quick-invite-form button{min-height:38px}}
+@media(max-width:550px){.quick-invite-desk{padding:13px}.quick-invite-form{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-invite-form label:first-child{grid-column:1/-1}.quick-invite-form button{grid-column:1/-1}.quick-pending-row{flex-direction:column;align-items:stretch}.quick-pending-actions{justify-content:flex-start}.quick-invite-head h2{font-size:29px}}
 </style></head><body>
 <header><a class="brand" href="./">E &amp; M</a><button id="language" type="button">ΕΛ / EN</button></header>
 <nav class="utility-nav" aria-label="Planning navigation">
@@ -123,7 +153,21 @@ main{padding-top:35px}.head-row h1{font-size:clamp(45px,6vw,70px)}.head-row p{ma
 <div class="wedding-timeline"><div><span data-en="COUNTDOWN TO OUR DAY" data-el="ΑΝΤΙΣΤΡΟΦΗ ΜΕΤΡΗΣΗ">COUNTDOWN TO OUR DAY</span><strong id="wedding-countdown">—</strong><small id="wedding-countdown-label" data-en="days to go" data-el="ημέρες απομένουν">days to go</small></div><div class="wedding-timeline-copy"><strong data-en="Saturday, 10 June 2028" data-el="Σάββατο, 10 Ιουνίου 2028">Saturday, 10 June 2028</strong><span>The Barnyards Venues · Skarinou, Cyprus</span></div></div>
 <div class="notice" data-en="Planning preview: guests, shared checklist and test budget load from Cloudflare. Management pages are not password-protected. Do not enter private or real financial information." data-el="Δοκιμαστική οργάνωση: καλεσμένοι, κοινή λίστα εργασιών και δοκιμαστικός προϋπολογισμός φορτώνονται από το Cloudflare. Η διαχείριση δεν προστατεύεται με κωδικό. Μην καταχωρείτε προσωπικά ή πραγματικά οικονομικά στοιχεία.">Planning preview: guest data and test budget load from Cloudflare; checklist tasks come from this device only. Management pages are not password-protected yet. Do not enter private or real financial data until access is secured.</div>
 <div class="status" id="status" role="status" aria-live="polite"></div>
-<details id="em-advisor" class="em-advisor" open><summary><span><span class="em-advisor-kicker" data-en="PLANNING AGENT HUB" data-el="ΚΕΝΤΡΟ ΒΟΗΘΩΝ ΟΡΓΑΝΩΣΗΣ">PLANNING AGENT HUB</span><strong data-en="Wedding Agent Centre" data-el="Κέντρο Βοηθών Γάμου">Wedding Agent Centre</strong></span><span class="em-advisor-toggle" data-en="Show / hide ▾" data-el="Εμφάνιση / απόκρυψη ▾">Show / hide ▾</span></summary>
+<section id="quick-invite-desk" class="quick-invite-desk" aria-label="Quick invitations and RSVP">
+<div class="quick-invite-head"><div><span class="eyebrow" data-en="ONE-STOP INVITATIONS" data-el="ΓΡΗΓΟΡΕΣ ΠΡΟΣΚΛΗΣΕΙΣ">ONE-STOP INVITATIONS</span><h2 data-en="Invite & confirm" data-el="Πρόσκληση & επιβεβαίωση">Invite & confirm</h2></div><a href="./guest-list.html" data-en="Full guest list ↗" data-el="Πλήρης λίστα ↗">Full guest list ↗</a></div>
+<form id="quick-invite-form" class="quick-invite-form" autocomplete="off">
+<label><span data-en="Guest or family name" data-el="Όνομα καλεσμένου / οικογένειας">Guest or family name</span><input id="quick-invite-name" maxlength="100" required placeholder="Name / Όνομα"></label>
+<label><span data-en="Invited adults" data-el="Προσκεκλημένοι ενήλικες">Invited adults</span><input id="quick-invite-adults" type="number" min="0" max="30" step="1" required inputmode="numeric" placeholder="0"></label>
+<label><span data-en="Children" data-el="Παιδιά">Children</span><input id="quick-invite-children" type="number" min="0" max="30" step="1" inputmode="numeric" placeholder="0"></label>
+<button type="submit" id="quick-invite-submit" data-en="+ Add invitation" data-el="+ Προσθήκη πρόσκλησης">+ Add invitation</button>
+</form>
+<p class="quick-invite-note" data-en="New invitations are always unanswered until someone explicitly confirms or declines. Invitations are not sent automatically." data-el="Οι νέες προσκλήσεις παραμένουν αναπάντητες μέχρι ρητή επιβεβαίωση ή άρνηση. Δεν αποστέλλονται αυτόματα.">New invitations are always unanswered until someone explicitly confirms or declines. Invitations are not sent automatically.</p>
+<div id="quick-invite-created" class="quick-invite-created" hidden></div>
+<div class="quick-invite-list-head"><strong><span data-en="Awaiting RSVP" data-el="Σε αναμονή RSVP">Awaiting RSVP</span> <span id="quick-pending-count">—</span></strong><a href="./rsvp-followup.html" data-en="See all / follow up ↗" data-el="Προβολή όλων / υπενθυμίσεις ↗">See all / follow up ↗</a></div>
+<div id="quick-pending-list" class="quick-pending-list" aria-live="polite"></div>
+<div id="quick-invite-status" class="status" role="status" aria-live="polite"></div>
+</section>
+<details id="em-advisor" class="em-advisor"><summary><span><span class="em-advisor-kicker" data-en="PLANNING AGENT HUB" data-el="ΚΕΝΤΡΟ ΒΟΗΘΩΝ ΟΡΓΑΝΩΣΗΣ">PLANNING AGENT HUB</span><strong data-en="Wedding Agent Centre" data-el="Κέντρο Βοηθών Γάμου">Wedding Agent Centre</strong></span><span class="em-advisor-toggle" data-en="Show / hide ▾" data-el="Εμφάνιση / απόκρυψη ▾">Show / hide ▾</span></summary>
 <div class="em-advisor-grid">
 <button type="button" data-agent="planner" data-en="Planning Agent" data-el="Βοηθός Οργάνωσης">Planning Agent</button>
 <button type="button" data-agent="guests" data-en="RSVP Assistant" data-el="Βοηθός RSVP">RSVP Assistant</button>
@@ -336,4 +380,4 @@ $('tools-dropdown').addEventListener('click',e=>{if(e.target.closest('a'))$('too
 window.addEventListener('hashchange',()=>selectView(location.hash.slice(1),false));
 
 $('refresh').onclick=load;window.addEventListener('focus',()=>{if(plan||budget)load()});window.addEventListener('storage',e=>{if(e.key==='em-checklist-v1')paint()});selectView(location.hash.slice(1),false);translate();load();
-</script><script src="./planning-agents.js?v=81" defer></script></body></html>
+</script><script src="./planning-invites.js?v=84" defer></script><script src="./planning-agents.js?v=81" defer></script></body></html>
