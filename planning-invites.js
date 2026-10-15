@@ -56,6 +56,7 @@ async function commit(mutate,en,gr,deleted=[]){
    throw Error(data.error||'Save failed');
   }
   if(!Array.isArray(data.plan?.guests)||typeof data.plan.revision!=='string')throw Error('Save not verified');
+  window.emGuestManagerChangeEpoch=(window.emGuestManagerChangeEpoch||0)+1;
   plan=data.plan;keepCopy(plan);active=null;
   try{paint();document.dispatchEvent(new Event('wedding:planning-updated'));}catch(error){render();}
   message(T(en,gr));return true;
@@ -148,6 +149,7 @@ async function markSent(g){
   const res=await fetch(API+'/wedding/rsvp-followup',{method:'POST',headers:{'Content-Type':'application/json'},
    body:JSON.stringify({id:g.id,action}),cache:'no-store'});
   const data=await res.json().catch(()=>({}));if(!res.ok)throw Error(data.error||'Status failed');
+  window.emGuestManagerChangeEpoch=(window.emGuestManagerChangeEpoch||0)+1;
   if(!followup)followup={};followup[g.id]=data.entry;
   try{paint();document.dispatchEvent(new Event('wedding:planning-updated'));}catch(error){render();}
   message(action==='invited'?T('Marked sent. No message was sent automatically.','Σημειώθηκε ως σταλμένη, χωρίς αυτόματη αποστολή.'):
@@ -252,7 +254,7 @@ E('gm-table-form').addEventListener('submit',async event=>{
  }
 });
 E('gm-backup').onclick=backup;
-E('gm-refresh').onclick=async()=>{if(saving)return;await load();message(T('Guest records refreshed.','Η λίστα ανανεώθηκε.'));render();};
+E('gm-refresh').onclick=async()=>{if(saving)return;await load();if(loaded())message(T('Guest records refreshed.','Η λίστα ανανεώθηκε.'));else message(T('Cloud guest data unavailable. Try again.','Τα δεδομένα cloud δεν είναι διαθέσιμα.'),true);render();};
 E('gm-search').oninput=()=>{page=1;active=null;render();};
 E('gm-filter').onchange=()=>{page=1;active=null;render();};
 E('gm-prev').onclick=()=>{if(page>1){page--;active=null;render();}};
