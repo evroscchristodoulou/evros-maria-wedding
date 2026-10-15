@@ -23,4 +23,4 @@ $('add').onclick=()=>{announcements.unshift({id:crypto.randomUUID(),titleEn:'',t
 $('reload').onclick=()=>{if(changed&&!confirm(t('Discard unsaved edits?','Ακύρωση μη αποθηκευμένων αλλαγών;')))return;load()};
 $('publish').onclick=async()=>{const key=$('key').value.trim();if(!key)return $('status').textContent=t('Enter the publishing key.','Εισάγετε το κλειδί δημοσίευσης.');if(announcements.some(a=>!a.titleEn.trim()||!a.bodyEn.trim()))return $('status').textContent=t('English title and message are required.','Απαιτούνται αγγλικός τίτλος και κείμενο.');$('publish').disabled=true;$('status').textContent=t('Publishing…','Δημοσίευση…');try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({announcements})});const d=await r.json();if(!r.ok)throw Error(d.error||'HTTP '+r.status);$('status').textContent=t('Announcements published.','Οι ανακοινώσεις δημοσιεύτηκαν.');changed=false;render()}catch(e){$('status').textContent=e.message}finally{$('publish').disabled=false}};
 load();
-</script></body></html>
+</script><script src="./back-to-planning.js?v=87" defer></script></body></html>
