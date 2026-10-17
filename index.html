@@ -263,7 +263,18 @@ body{background:#faf9f7;background-image:radial-gradient(ellipse at 50% 4%,rgba(
   .em-guest-hub .em-hub-tile:hover{transform:none}
 }
 </style>
-</head>
+<style>
+/* Compact Fun Facts invitation inside the existing Guest Hub */
+.em-guest-hub .em-fun-facts-link{display:flex;gap:11px;align-items:center;min-height:65px;margin:12px 0 0;border:1px solid #ded4c7;background:linear-gradient(110deg,#fffefa,#f8f4ee);color:#292622;text-decoration:none;transition:background .2s,border-color .2s}
+.em-guest-hub .em-fun-facts-link:hover,.em-guest-hub .em-fun-facts-link:focus-visible{background:#f2ebdf;border-color:#b5a18a}
+.em-guest-hub .em-fun-facts-monogram{display:flex;align-items:center;justify-content:center;align-self:stretch;flex:0 0 65px;background:#292622;color:#fff;font:italic 400 24px 'Cormorant Garamond',Georgia,serif}
+.em-guest-hub .em-fun-facts-copy{display:grid;gap:3px;min-width:0;flex:1;padding:8px 0}
+.em-guest-hub .em-fun-facts-copy strong{font:500 11px Inter,Arial,sans-serif;letter-spacing:.04em}
+.em-guest-hub .em-fun-facts-copy small{font:300 11px/1.5 Inter,Arial,sans-serif;color:#756b60}
+.em-guest-hub .em-fun-facts-arrow{font-size:20px;padding:0 14px;color:#826c55}
+@media(max-width:480px){.em-guest-hub .em-fun-facts-monogram{flex-basis:52px;font-size:21px}.em-guest-hub .em-fun-facts-copy small{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.em-guest-hub .em-fun-facts-link{transition:none}}
+</style></head>
 <body>
 <header><a href="#home" class="wordmark" aria-label="Evros and Maria home">E &amp; M</a><div class="top-actions"><button class="header-link" id="install-app" type="button" title="Download wedding app" data-en="↓ Download" data-el="↓ Λήψη">↓ Download</button><button id="language" class="language" type="button" aria-label="Switch language">ΕΛ / EN</button></div></header>
 <main><section id="install-guide" class="install-guide" hidden aria-label="Wedding app installation">
@@ -305,6 +316,11 @@ body{background:#faf9f7;background-image:radial-gradient(ellipse at 50% 4%,rgba(
 <button type="button" class="em-hub-tile" id="em-ask-guide"><span class="em-hub-icon">✧</span><strong data-en="Ask our Wedding Guide" data-el="Ρωτήστε τον Οδηγό">Ask our Wedding Guide</strong><small data-en="Venue · RSVP · Schedule ↗" data-el="Χώρος · RSVP · Πρόγραμμα ↗">Venue · RSVP · Schedule ↗</small></button>
 <a href="./announcements.html" class="em-hub-tile"><span class="em-hub-icon">◇</span><strong data-en="All Announcements" data-el="Όλες οι Ανακοινώσεις">All Announcements</strong><small data-en="Latest wedding news ↗" data-el="Νέα του γάμου ↗">Latest wedding news ↗</small></a>
 </div>
+<a href="./fun-facts.html" class="em-fun-facts-link" aria-label="Fun facts about Evros and Maria">
+  <span class="em-fun-facts-monogram" aria-hidden="true">E &amp; M</span>
+  <span class="em-fun-facts-copy"><strong data-en="FUN FACTS · Our story" data-el="FUN FACTS · Η ιστορία μας">FUN FACTS · Our story</strong><small data-en="First he took her job. Then he took her heart." data-el="Πρώτα της πήρε τη δουλειά. Μετά της έκλεψε την καρδιά.">First he took her job. Then he took her heart.</small></span>
+  <span class="em-fun-facts-arrow" aria-hidden="true">↗</span>
+</a>
 <div class="em-hub-agentbar" role="group" aria-label="Wedding guide specialists"><span data-en="Ask a guide" data-el="Ρωτήστε έναν οδηγό">Ask a guide</span><button type="button" data-guide-agent="concierge" data-en="Concierge" data-el="Οδηγός">Concierge</button><button type="button" data-guide-agent="travel" data-en="Travel" data-el="Διαδρομή">Travel</button><button type="button" data-guide-agent="schedule" data-en="Schedule" data-el="Πρόγραμμα">Schedule</button><button type="button" data-guide-agent="style" data-en="Dress & stay" data-el="Ένδυση & διαμονή">Dress & stay</button><button type="button" data-guide-agent="photos" data-en="Photos" data-el="Φωτογραφίες">Photos</button><button type="button" data-guide-agent="games" data-en="Games" data-el="Παιχνίδια">Games</button></div>
 <details class="em-hub-updates" id="em-updates"><summary><span data-en="Latest announcements" data-el="Τελευταίες ανακοινώσεις">Latest announcements</span><span id="em-update-count" aria-live="polite">—</span></summary>
 <div id="home-announcements-list" aria-live="polite"><p data-en="Checking for updates…" data-el="Έλεγχος ενημερώσεων…">Checking for updates…</p></div></details>
