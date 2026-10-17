@@ -264,17 +264,13 @@ body{background:#faf9f7;background-image:radial-gradient(ellipse at 50% 4%,rgba(
 }
 </style>
 <style>
-/* Our story sits immediately below the wedding countdown, not inside Guest Hub. */
-.em-how-met{max-width:960px;margin:17px auto 15px;padding:24px clamp(18px,4.3vw,39px);display:grid;grid-template-columns:130px minmax(0,1fr);gap:29px;align-items:center;border:1px solid #ded8cf;background:linear-gradient(115deg,#fffdfa,#f5f1ec);color:#292622}
-.em-how-met-mark{width:123px;height:123px;display:flex;align-items:center;justify-content:center;gap:5px;background:#292622;color:#fffdfa;font:italic 400 39px/1 'Cormorant Garamond',Georgia,serif;letter-spacing:-.04em;border-radius:0 0 0 26px}
-.em-how-met-mark span{font-size:25px;color:#e3d9c9}
-.em-how-met-overline{display:block;color:#907b64;letter-spacing:.21em;font:500 9px/1.6 Inter,Arial,sans-serif;margin:0 0 5px}
-.em-how-met h2{font:400 clamp(34px,4vw,47px)/1 'Cormorant Garamond',Georgia,serif;letter-spacing:-.025em;margin:0 0 10px}
-.em-how-met p{font:300 12px/1.75 Inter,Arial,sans-serif;color:#6c6258;margin:0 0 8px;max-width:630px}
-.em-how-met .em-how-met-punch{font-weight:500;color:#2d2925;margin:7px 0 10px}
-.em-how-met-link{display:inline-flex;align-items:center;gap:9px;text-decoration:none;border-bottom:1px solid #98816a;font:500 11px/1.6 Inter,Arial,sans-serif;color:#493a2c;padding:3px 0}
-.em-how-met-link:hover,.em-how-met-link:focus-visible{color:#8d6545;border-bottom-color:#8d6545}
-@media(max-width:620px){.em-how-met{margin:12px 12px 10px;padding:19px 17px;grid-template-columns:1fr;gap:10px}.em-how-met-mark{width:62px;height:62px;font-size:23px;border-bottom-left-radius:16px;gap:2px}.em-how-met-mark span{font-size:14px}.em-how-met h2{font-size:38px}.em-how-met p{font-size:11px}}
+/* Compact clickable story line just below the countdown. */
+.em-how-met-line{max-width:960px;margin:15px auto 11px;text-align:center}
+.em-how-met-line a{display:inline-flex;align-items:center;gap:6px;font:400 27px/1.25 'Cormorant Garamond',Georgia,serif;color:#292622;text-decoration:none;border-bottom:1px solid #bfae9b;padding:4px 3px 6px;transition:border-color .2s,color .2s}
+.em-how-met-line a:hover,.em-how-met-line a:focus-visible{color:#8c6d4e;border-bottom-color:#8c6d4e}
+.em-how-met-line a span:last-child{font:400 16px Inter,Arial,sans-serif}
+@media(max-width:620px){.em-how-met-line{margin:12px auto 8px}.em-how-met-line a{font-size:25px}}
+@media(prefers-reduced-motion:reduce){.em-how-met-line a{transition:none}}
 </style></head>
 <body>
 <header><a href="#home" class="wordmark" aria-label="Evros and Maria home">E &amp; M</a><div class="top-actions"><button class="header-link" id="install-app" type="button" title="Download wedding app" data-en="↓ Download" data-el="↓ Λήψη">↓ Download</button><button id="language" class="language" type="button" aria-label="Switch language">ΕΛ / EN</button></div></header>
@@ -303,17 +299,9 @@ body{background:#faf9f7;background-image:radial-gradient(ellipse at 50% 4%,rgba(
 <div class="time"><div class="number" id="minutes">—</div><span class="time-label" data-en="Minutes" data-el="Λεπτά">Minutes</span></div>
 <div class="time"><div class="number" id="seconds">—</div><span class="time-label" data-en="Seconds" data-el="Δευτ.">Seconds</span></div>
 </div>
-<section class="em-how-met" id="how-we-met" aria-labelledby="how-met-title">
-<div class="em-how-met-mark" aria-hidden="true">E <span>&amp;</span> M</div>
-<div class="em-how-met-copy">
-<span class="em-how-met-overline" data-en="A LITTLE TWIST OF FATE" data-el="ΕΝΑ ΠΑΙΧΝΙΔΙ ΤΗΣ ΜΟΙΡΑΣ">A LITTLE TWIST OF FATE</span>
-<h2 id="how-met-title" data-en="How We Met" data-el="Πώς Γνωριστήκαμε">How We Met</h2>
-<p data-en="Maria worked at the port. Six months after she left, Evros was hired to take her old position — even though they had never met." data-el="Η Μαρία δούλευε στο λιμάνι. Έξι μήνες αφού έφυγε, ο Εύρος προσλήφθηκε στη θέση της — χωρίς να έχουν γνωριστεί ποτέ.">Maria worked at the port. Six months after she left, Evros was hired to take her old position — even though they had never met.</p>
-<p data-en="Two years later, a colleague happened to mention that little coincidence. That conversation finally brought them together!" data-el="Δύο χρόνια αργότερα, ένας συνάδελφος ανέφερε αυτή την απίθανη σύμπτωση. Κι έτσι μια κουβέντα τους έφερε επιτέλους κοντά!">Two years later, a colleague happened to mention that little coincidence. That conversation finally brought them together!</p>
-<p class="em-how-met-punch" data-en="First he took her job. Then he took her heart." data-el="Πρώτα της πήρε τη δουλειά. Μετά της έκλεψε την καρδιά.">First he took her job. Then he took her heart.</p>
-<a href="./fun-facts.html" class="em-how-met-link"><span data-en="Read our fun facts" data-el="Διαβάστε τα fun facts μας">Read our fun facts</span><span aria-hidden="true">↗</span></a>
+<div class="em-how-met-line" id="how-we-met">
+<a href="./fun-facts.html" aria-label="How We Met — read our story"><span data-en="How We Met" data-el="Πώς Γνωριστήκαμε">How We Met</span><span aria-hidden="true"> ↗</span></a>
 </div>
-</section>
 <section class="hero-rsvp"><div class="hero-rsvp-inner"><span class="hero-rsvp-mark" aria-hidden="true">✧</span><div><div class="hero-rsvp-eyebrow" data-en="WE WOULD LOVE TO CELEBRATE WITH YOU" data-el="ΘΑ ΧΑΡΟΥΜΕ ΝΑ ΓΙΟΡΤΑΣΟΥΜΕ ΜΑΖΙ">WE WOULD LOVE TO CELEBRATE WITH YOU</div><h2 data-en="A day to remember, together." data-el="Μια μέρα αξέχαστη, μαζί.">A day to remember, together.</h2><p data-en="Please let us know if you can join us for our special day." data-el="Παρακαλούμε επιβεβαιώστε αν θα είστε μαζί μας στη ξεχωριστή μας μέρα.">Please let us know if you can join us for our special day.</p></div><a class="hero-rsvp-button" href="./rsvp.html"><span data-en="Confirm attendance" data-el="Επιβεβαίωση παρουσίας">Confirm attendance</span><span aria-hidden="true">↗</span></a></div></section>
 <section class="all-guest-links" aria-label="Explore our wedding"><div class="guest-links-heading" data-en="EXPLORE OUR WEDDING" data-el="ΑΝΑΚΑΛΥΨΤΕ ΤΟΝ ΓΑΜΟ ΜΑΣ">EXPLORE OUR WEDDING</div><nav class="guest-links-grid" aria-label="Wedding information"><a class="guest-feature-card" href="./timeline.html"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg><span data-en="Timeline" data-el="Πρόγραμμα">Timeline</span><span class="feature-arrow" aria-hidden="true">↗</span></a><a class="guest-feature-card" href="./seating.html"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3h16v18H4z"/><path d="M4 8h16M9 8v13M9 13h11"/></svg><span data-en="Find your table" data-el="Βρείτε τραπέζι">Find your table</span><span class="feature-arrow" aria-hidden="true">↗</span></a><a class="guest-feature-card" href="./info.html"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v-5m0-4h.01"/><path d="M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z"/></svg><span data-en="Guest info" data-el="Πληροφορίες">Guest info</span><span class="feature-arrow" aria-hidden="true">↗</span></a><a class="quick-link" href="./guestbook.html"  aria-label="Wishes" title="Wishes"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg><span data-en="Wishes" data-el="Ευχές">Wishes</span></a></nav></section>
 <section class="em-more-always" aria-label="More ways to celebrate">
