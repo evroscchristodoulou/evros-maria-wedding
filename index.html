@@ -264,13 +264,10 @@ body{background:#faf9f7;background-image:radial-gradient(ellipse at 50% 4%,rgba(
 }
 </style>
 <style>
-/* Compact clickable story line just below the countdown. */
-.em-how-met-line{max-width:960px;margin:15px auto 11px;text-align:center}
-.em-how-met-line a{display:inline-flex;align-items:center;gap:6px;font:400 27px/1.25 'Cormorant Garamond',Georgia,serif;color:#292622;text-decoration:none;border-bottom:1px solid #bfae9b;padding:4px 3px 6px;transition:border-color .2s,color .2s}
-.em-how-met-line a:hover,.em-how-met-line a:focus-visible{color:#8c6d4e;border-bottom-color:#8c6d4e}
-.em-how-met-line a span:last-child{font:400 16px Inter,Arial,sans-serif}
-@media(max-width:620px){.em-how-met-line{margin:12px auto 8px}.em-how-met-line a{font-size:25px}}
-@media(prefers-reduced-motion:reduce){.em-how-met-line a{transition:none}}
+/* Story link inside the hero frame, matching the countdown overline typography. */
+.hero .em-how-met-inline{display:block;width:max-content;max-width:100%;margin:0 auto 16px;color:var(--muted);text-decoration:none;border-bottom:1px solid currentColor;padding-bottom:5px;transition:color .2s}
+.hero .em-how-met-inline:hover,.hero .em-how-met-inline:focus-visible{color:var(--ink)}
+@media(prefers-reduced-motion:reduce){.hero .em-how-met-inline{transition:none}}
 </style></head>
 <body>
 <header><a href="#home" class="wordmark" aria-label="Evros and Maria home">E &amp; M</a><div class="top-actions"><button class="header-link" id="install-app" type="button" title="Download wedding app" data-en="↓ Download" data-el="↓ Λήψη">↓ Download</button><button id="language" class="language" type="button" aria-label="Switch language">ΕΛ / EN</button></div></header>
@@ -291,11 +288,9 @@ body{background:#faf9f7;background-image:radial-gradient(ellipse at 50% 4%,rgba(
 <div class="location" data-en="Skarinou · Cyprus" data-el="Σκαρίνου · Κύπρος">Skarinou · Cyprus</div>
 <div class="dj-credit"><span data-en="Music by" data-el="Μουσική από">Music by</span> <a href="https://www.instagram.com/djkairinos/?hl=en" target="_blank" rel="noopener noreferrer" aria-label="DJ Kairinos Instagram">DJ Kairinos <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a></div>
 <hr class="line">
+<a class="eyebrow em-how-met-inline" id="how-we-met" href="./fun-facts.html" aria-label="How We Met — read our story"><span data-en="How We Met" data-el="Πώς Γνωριστήκαμε">How We Met</span><span aria-hidden="true"> ↗</span></a>
 <div class="eyebrow" data-en="The countdown to our day" data-el="Μετράμε αντίστροφα για τη μέρα μας">The countdown to our day</div>
 </section>
-<div class="em-how-met-line" id="how-we-met">
-<a href="./fun-facts.html" aria-label="How We Met — read our story"><span data-en="How We Met" data-el="Πώς Γνωριστήκαμε">How We Met</span><span aria-hidden="true"> ↗</span></a>
-</div>
 <div class="countdown" role="timer" aria-label="Countdown to wedding">
 <div class="time"><div class="number" id="days">—</div><span class="time-label" data-en="Days" data-el="Μέρες">Days</span></div>
 <div class="time"><div class="number" id="hours">—</div><span class="time-label" data-en="Hours" data-el="Ώρες">Hours</span></div>
