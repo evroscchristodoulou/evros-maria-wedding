@@ -22,11 +22,11 @@
 .pending-controls button:disabled{opacity:.35;cursor:default}
 .pending-controls span{font-size:11px;color:#776b5f}
 @media(max-width:480px){.choice-grid{grid-template-columns:1fr}.choice-tile{min-height:54px}.pending-browse{padding:14px}}
-</style></head><body><header><a href="./">E &amp; M</a><button id="language" type="button">ΕΛ / EN</button></header><main><div class="eyebrow">EVROS &amp; MARIA · 10.06.2028</div><h1 data-en="Kindly reply." data-el="Παρακαλούμε απαντήστε.">Kindly reply.</h1><p data-en="We would love to celebrate with you. Please let us know if you can join us on 10 June 2028." data-el="Θα χαρούμε πολύ να γιορτάσουμε μαζί σας. Ενημερώστε μας αν θα είστε κοντά μας στις 10 Ιουνίου 2028.">We would love to celebrate with you. Please let us know if you can join us on 10 June 2028.</p><form id="rsvp"><label for="name" data-en="Your name / family name" data-el="Όνομα / οικογενειακό όνομα">Your name / family name</label><input id="name" required maxlength="100" autocomplete="name"><fieldset class="attendance-choices" id="attendance-choices"><legend data-en="Will you attend? (Please tick one)" data-el="Θα παρευρεθείτε; (Επιλέξτε ένα)">Will you attend? (Please tick one)</legend><div class="choice-grid"><label class="choice-tile"><input type="checkbox" id="attend-yes" name="attend-yes"><span data-en="✓ I will attend" data-el="✓ Θα παρευρεθώ">✓ I will attend</span></label><label class="choice-tile"><input type="checkbox" id="attend-no" name="attend-no"><span data-en="✕ I cannot attend" data-el="✕ Δεν θα μπορέσω">✕ I cannot attend</span></label></div><p class="choice-help" data-en="Nothing is selected automatically. Choose one answer to continue." data-el="Καμία απάντηση δεν είναι προεπιλεγμένη. Επιλέξτε μία επιλογή.">Nothing is selected automatically. Choose one answer to continue.</p></fieldset><div class="grid" id="counts"><div><label for="adults" data-en="Adults" data-el="Ενήλικες">Adults</label><input id="adults" type="number" min="0" max="20" step="1" placeholder="0" inputmode="numeric"></div><div><label for="children" data-en="Children" data-el="Παιδιά">Children</label><input id="children" type="number" min="0" max="20" step="1" placeholder="0" inputmode="numeric"></div></div><div id="details"><label for="dietary" data-en="Dietary requirements (optional)" data-el="Διατροφικές ανάγκες (προαιρετικά)">Dietary requirements (optional)</label><textarea id="dietary" maxlength="400"></textarea></div><label for="notes" data-en="A note for us (optional)" data-el="Ένα μήνυμα για εμάς (προαιρετικά)">A note for us (optional)</label><textarea id="notes" maxlength="400"></textarea><button class="btn" id="submit" type="submit" data-en="Send RSVP" data-el="Αποστολή απάντησης">Send RSVP</button><button class="btn secondary hidden" id="remove" type="button" data-en="Cancel my RSVP" data-el="Διαγραφή της απάντησής μου">Cancel my RSVP</button></form><div class="notice" id="status" role="status" aria-live="polite"></div><div class="hint" id="link"></div><p><a href="./" data-en="← Back to wedding website" data-el="← Επιστροφή στην ιστοσελίδα">← Back to wedding website</a></p></main><footer>EVROS &amp; MARIA · 10.06.2028</footer><script>
+.personal-rsvp[hidden]{display:none}.personal-rsvp{margin:24px 0 18px;padding:26px 20px;text-align:center;border:1px solid #cbbba6;background:#fffdfa;position:relative}.personal-rsvp:before{content:"";position:absolute;inset:7px;border:1px solid #eee6db;pointer-events:none}.personal-rsvp .personal-mark{font:400 36px 'Cormorant Garamond',serif;letter-spacing:.12em}.personal-rsvp h2{font:400 clamp(31px,6vw,42px)/1.15 'Cormorant Garamond',serif;margin:10px 0}.personal-rsvp p{font-size:12px;margin:8px 0}.personal-rsvp .personal-date{letter-spacing:.14em;color:#796e61;font-size:11px}.personal-rsvp .personal-invited{color:#756959}.personal-rsvp .personal-change{font-size:11px;background:transparent;border:0;text-decoration:underline;cursor:pointer;margin-top:7px}.personal-rsvp .personal-change:hover{color:#40352c}</style></head><body><header><a href="./">E &amp; M</a><button id="language" type="button">ΕΛ / EN</button></header><main><div class="eyebrow">EVROS &amp; MARIA · 10.06.2028</div><h1 data-en="Kindly reply." data-el="Παρακαλούμε απαντήστε.">Kindly reply.</h1><p data-en="We would love to celebrate with you. Please let us know if you can join us on 10 June 2028." data-el="Θα χαρούμε πολύ να γιορτάσουμε μαζί σας. Ενημερώστε μας αν θα είστε κοντά μας στις 10 Ιουνίου 2028.">We would love to celebrate with you. Please let us know if you can join us on 10 June 2028.</p><section id="personal-rsvp" class="personal-rsvp" hidden><div class="personal-mark">E &amp; M</div><p data-en="Your personal invitation" data-el="Η προσωπική σας πρόσκληση">Your personal invitation</p><h2 id="personal-name"></h2><p data-en="We would love to celebrate together!" data-el="Θα χαρούμε πολύ να γιορτάσουμε μαζί σας!">We would love to celebrate together!</p><p id="personal-invited" class="personal-invited"></p><p class="personal-date">10 · 06 · 2028 · The Barnyards</p><button type="button" class="personal-change" id="personal-change" data-en="Not your invitation? Find another" data-el="Δεν είναι η πρόσκλησή σας; Αναζητήστε άλλη">Not your invitation? Find another</button></section><form id="rsvp"><label for="name" data-en="Your name / family name" data-el="Όνομα / οικογενειακό όνομα">Your name / family name</label><input id="name" required maxlength="100" autocomplete="name"><fieldset class="attendance-choices" id="attendance-choices"><legend data-en="Will you attend? (Please tick one)" data-el="Θα παρευρεθείτε; (Επιλέξτε ένα)">Will you attend? (Please tick one)</legend><div class="choice-grid"><label class="choice-tile"><input type="checkbox" id="attend-yes" name="attend-yes"><span data-en="✓ I will attend" data-el="✓ Θα παρευρεθώ">✓ I will attend</span></label><label class="choice-tile"><input type="checkbox" id="attend-no" name="attend-no"><span data-en="✕ I cannot attend" data-el="✕ Δεν θα μπορέσω">✕ I cannot attend</span></label></div><p class="choice-help" data-en="Nothing is selected automatically. Choose one answer to continue." data-el="Καμία απάντηση δεν είναι προεπιλεγμένη. Επιλέξτε μία επιλογή.">Nothing is selected automatically. Choose one answer to continue.</p></fieldset><div class="grid" id="counts"><div><label for="adults" data-en="Adults" data-el="Ενήλικες">Adults</label><input id="adults" type="number" min="0" max="20" step="1" placeholder="0" inputmode="numeric"></div><div><label for="children" data-en="Children" data-el="Παιδιά">Children</label><input id="children" type="number" min="0" max="20" step="1" placeholder="0" inputmode="numeric"></div></div><div id="details"><label for="dietary" data-en="Dietary requirements (optional)" data-el="Διατροφικές ανάγκες (προαιρετικά)">Dietary requirements (optional)</label><textarea id="dietary" maxlength="400"></textarea></div><label for="notes" data-en="A note for us (optional)" data-el="Ένα μήνυμα για εμάς (προαιρετικά)">A note for us (optional)</label><textarea id="notes" maxlength="400"></textarea><button class="btn" id="submit" type="submit" data-en="Send RSVP" data-el="Αποστολή απάντησης">Send RSVP</button><button class="btn secondary hidden" id="remove" type="button" data-en="Cancel my RSVP" data-el="Διαγραφή της απάντησής μου">Cancel my RSVP</button></form><div class="notice" id="status" role="status" aria-live="polite"></div><div class="hint" id="link"></div><p><a href="./" data-en="← Back to wedding website" data-el="← Επιστροφή στην ιστοσελίδα">← Back to wedding website</a></p></main><footer>EVROS &amp; MARIA · 10.06.2028</footer><script>
 
 const API='https://evros-maria-wedding.evros-christodoulou1995.workers.dev', $=id=>document.getElementById(id);
 let lang=localStorage.getItem('wedding-lang')==='el'?'el':'en';
-let selected=null,searchTimer=null,searchSequence=0,pendingPage=1,pendingPages=1,pendingRequest=0;
+let selected=null,searchTimer=null,searchSequence=0,pendingPage=1,pendingPages=1,pendingRequest=0,directInvitation=false;
 const t=(en,el)=>lang==='el'?el:en;
 function translate(){document.documentElement.lang=lang;document.querySelectorAll('[data-en]').forEach(e=>e.textContent=e.dataset[lang]);}
 async function post(path,data){
@@ -67,8 +67,10 @@ function showChoice(){
 $('attend-yes').onchange=()=>{if($('attend-yes').checked)$('attend-no').checked=false;showChoice()};
 $('attend-no').onchange=()=>{if($('attend-no').checked)$('attend-yes').checked=false;showChoice()};
 function hideSuggestions(){matches.replaceChildren();matches.style.display='none';input.setAttribute('aria-expanded','false');}
-function selectInvitation(guest){
- selected=guest;
+function selectInvitation(guest,fromPersonalLink=false){
+ selected=guest;directInvitation=fromPersonalLink;
+ $('personal-rsvp').hidden=!fromPersonalLink;
+ if(fromPersonalLink){$('personal-name').textContent=guest.name;$('personal-invited').textContent=(guest.invitedAdults??guest.partySize??0)+' '+t('adults invited','προσκεκλημένοι ενήλικες')+' · '+(guest.invitedChildren??0)+' '+t('children invited','προσκεκλημένα παιδιά');search.classList.add('hidden');browse.classList.add('hidden')}
  $('name').readOnly=true;$('name').value=guest.name;input.value=guest.name;
  $('adults').max=guest.invitedAdults??guest.partySize;
  $('children').max=guest.invitedChildren??0;
@@ -83,7 +85,7 @@ manual.onclick=()=>{
  $('status').textContent=t('Your invitation was not found. The couple will review your RSVP before seating.','Δεν βρέθηκε πρόσκληση. Η απάντησή σας θα ελεγχθεί πριν την τοποθέτηση σε τραπέζι.');
  form.scrollIntoView({behavior:'smooth',block:'nearest'});
 };
-async function searchInvitations(autoSelect=false){
+async function searchInvitations(autoSelect=false,expectedId=''){
  const query=input.value.trim(),seq=++searchSequence;hideSuggestions();
  if(query.length<3){manual.style.display=query.length>=2?'inline-block':'none';$('status').textContent=query?t('Type at least 3 letters.','Πληκτρολογήστε τουλάχιστον 3 γράμματα.'):'';return;}
  try{
@@ -91,8 +93,8 @@ async function searchInvitations(autoSelect=false){
   if(seq!==searchSequence||input.value.trim()!==query)return;
   const options=Array.isArray(data.matches)?data.matches:[];
   if(autoSelect){
-   const exact=options.filter(g=>g.name.trim().toLocaleLowerCase()===query.toLocaleLowerCase());
-   if(exact.length===1){selectInvitation(exact[0]);return;}
+   const exact=options.filter(g=>g.name.trim().toLocaleLowerCase()===query.toLocaleLowerCase()&&(!expectedId||g.id===expectedId));
+   if(exact.length===1){selectInvitation(exact[0],!!expectedId);return;}
   }
   manual.style.display='inline-block';
   if(!options.length){$('status').textContent=t('No invitation found. You can send a reply for review.','Δεν βρέθηκε πρόσκληση. Μπορείτε να στείλετε απάντηση για έλεγχο.');return;}
@@ -130,6 +132,7 @@ async function loadPending(page=1){
 $('pending-prev').onclick=()=>loadPending(Math.max(1,pendingPage-1));
 $('pending-next').onclick=()=>loadPending(Math.min(pendingPages,pendingPage+1));
 $('find-invitation').onclick=()=>searchInvitations();
+$('personal-change').onclick=()=>{directInvitation=false;selected=null;$('personal-rsvp').hidden=true;search.classList.remove('hidden');browse.classList.remove('hidden');form.classList.add('hidden');history.replaceState(null,'',location.pathname);input.focus()};
 input.addEventListener('input',()=>{selected=null;form.classList.add('hidden');manual.style.display='none';clearTimeout(searchTimer);++searchSequence;hideSuggestions();searchTimer=setTimeout(()=>searchInvitations(),320)});
 input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();clearTimeout(searchTimer);searchInvitations();}if(e.key==='Escape')hideSuggestions();if(e.key==='ArrowDown'&&matches.firstElementChild){e.preventDefault();matches.firstElementChild.focus();}});
 matches.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();const b=[...matches.querySelectorAll('button')],i=b.indexOf(document.activeElement),next=b[i+(e.key==='ArrowDown'?1:-1)];if(next)next.focus();}if(e.key==='Escape'){hideSuggestions();input.focus();}});
@@ -152,12 +155,12 @@ form.onsubmit=async e=>{
  try{
   await post(isManual?'/wedding/rsvp':'/wedding/invitation/reply',payload);
   $('status').textContent=isManual?t('Thank you! Your RSVP is awaiting the couple’s review.','Ευχαριστούμε! Η απάντησή σας θα ελεγχθεί από το ζευγάρι.'):t('Thank you! Your attendance response is saved.','Ευχαριστούμε! Η απάντησή σας αποθηκεύτηκε.');
-  form.classList.add('hidden');selected=null;manual.style.display='none';hideSuggestions();resetChoice();loadPending(pendingPage);
+  form.classList.add('hidden');selected=null;manual.style.display='none';hideSuggestions();resetChoice();if(!directInvitation)loadPending(pendingPage);
  }catch(err){$('status').textContent=t('Could not save your RSVP: ','Αποτυχία αποθήκευσης RSVP: ')+err.message;}
  finally{$('submit').disabled=false;}
 };
-const invitationName=new URLSearchParams(location.search).get('invitation');
-if(invitationName&&invitationName.length<=100){input.value=invitationName;searchInvitations(true);}
+const params=new URLSearchParams(location.search),invitationName=params.get('invitation'),invitationGuestId=params.get('guest');
+if(invitationName&&invitationName.length<=100){input.value=invitationName;searchInvitations(true,/^[a-f0-9-]{20,64}$/i.test(invitationGuestId||'')?invitationGuestId:'');}
 translate();resetChoice();loadPending();
 
 </script></body></html>
